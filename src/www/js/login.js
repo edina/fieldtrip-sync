@@ -1,56 +1,81 @@
-define(['utils'], function(utils){
-    var $loginDiv = $('#home-content-login'),
-    homepageDisplay,
-    cloudProviderUrl;
+/*
+Copyright (c) 2014, EDINA.
+All rights reserved.
 
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this
+   list of conditions and the following disclaimer in the documentation and/or
+   other materials provided with the distribution.
+3. All advertising materials mentioning features or use of this software must
+   display the following acknowledgement: This product includes software
+   developed by the EDINA.
+4. Neither the name of the EDINA nor the names of its contributors may be used to
+   endorse or promote products derived from this software without specific prior
+   written permission.
+
+THIS SOFTWARE IS PROVIDED BY EDINA ''AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL EDINA BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
+*/
+
+"use strict";
+
+/**
+ * TODO
+ */
+define(['utils'], function(utils){
+    var $loginDiv = $('#home-content-login');
+    var cloudProviderUrl;
+
+    /**
+     * TODO
+     */
     var setCloudLogin = function(userId){
         localStorage.setItem('cloud-user', JSON.stringify({'id': userId}));
     };
 
+    /**
+     * TODO
+     */
     var getCloudLogin = function(){
         return JSON.parse(localStorage.getItem('cloud-user'));
     };
 
+    /**
+     * TODO
+     */
     var clearCloudLogin = function(){
         localStorage.setItem('cloud-user', JSON.stringify({'id': undefined}));
     };
 
-    var initLoginButton = function(){
-        var FIELDTRIPGB_NEWS_FEED_URL = utils.getServerUrl() + "/splash.html";
+    /**
+     * TODO
+     */
+    var hideSyncAndShowLogin = function(){
+        $('#home-content-sync').hide();
+        $('#home-content-upload').hide();
 
-        return {
-            hideSyncAndShowLogin: function(){
-                $('#home-content-sync').hide();
-                $('#home-content-upload').hide();
-
-                //Bug 5997 have to use full url due to jqm issue
-                $('#home-content-login img').attr('src',  utils.getDocumentBase() + 'theme/css/images/login-large.png');
-                $('#home-content-login p').text('Login');
-            },
-    
-            showLogoutAndSync: function(){
-    
-                //Bug 5997 have to use full url due to jqm issue
-                $('#home-content-login img').attr('src',  utils.getDocumentBase() + 'theme/css/images/logout.png');
-                $('#home-content-login p').text('Logout');
-    
-                //show sync button
-                $('#home-content-sync').show();
-                $('#home-content-upload').show();
-            },
-            getNewsFeed: function(selector){
-    
-                $.ajax({url:FIELDTRIPGB_NEWS_FEED_URL, success:function(result) {
-                    if (result) {
-                       $(selector).html(result);
-                    };
-                }, cache: false});
-
-            }
-
-        };
+        // Bug 5997 have to use full url due to jqm issue
+        $('#home-content-login img').attr(
+            'src',
+            utils.getDocumentBase() + 'plugins/sync/css/images/login-large.png');
+        $('#home-content-login p').text('Login');
     };
-    
+
+    /**
+     * TODO
+     */
     var doLogin = function(callback, cbrowser){
         var loginUrl = cloudProviderUrl + '/auth/dropbox';
 
@@ -87,7 +112,6 @@ define(['utils'], function(utils){
                 var pollUrl = loginUrl + '/' + cloudUserId + '?async=true';
                 console.debug('Poll: ' + pollUrl);
                 pollTimer = setInterval(function(){
-                    console.log("skata")
                     $.ajax({
                         url: pollUrl,
                         success: function(pollData){
@@ -134,34 +158,98 @@ define(['utils'], function(utils){
         });
     };
 
-    return {
-        "init": function(url){
-            console.log(url)
-            cloudProviderUrl = url;
-            setCloudLogin();
-            homepageDisplay = new initLoginButton();
-        },
-        "loginCloud": function(){
-            console.log(cloudProviderUrl)
-            var icon = $loginDiv.find('img').attr('src');
-            icon = icon.substr(icon.lastIndexOf('/') + 1);
+return {
 
-            if(icon === 'login-large.png'){
-                doLogin($.proxy(function(){
-                    $.mobile.hidePageLoadingMsg();
-                    var userId = getCloudLogin().id;
-                    if(userId){
-                        homepageDisplay.showLogoutAndSync();
+    /**
+     * TODO
+     */
+    init: function(url){
+        cloudProviderUrl = url;
+    },
+
+    /**
+     * Check if users session is valid.
+     */
+    checkLogin: function(){
+        console.log("=> " + this.userId);
+        if(!this.userId){
+            var userId = getCloudLogin().id;
+            if(userId){
+                var url = cloudProviderUrl + '/auth/dropbox/' + userId;
+                console.debug("Check user with: " + url);
+                $.ajax({
+                    type: 'GET',
+                    dataType: 'json',
+                    url: url,
+                    cache: false,
+                    success: $.proxy(function(data){
+                        if(data.state === 1){
+                            this.userId = userId;
+                        }
+
+                        //callback(data.state);
+                        this.showLogoutAndSync();
+                    }, this),
+                    error: function(error){
+                        console.error("Error with user: " + url + " : " + error.msg);
+                        login.logoutCloud();
                     }
-                }, this));
+                });
             }
-            else {
-                this.logoutCloud();
+            else{
+                console.debug("No user session saved");
+                login.logoutCloud();
             }
-        },
-        "logoutCloud": function(){
-            clearCloudLogin();
-            homepageDisplay.hideSyncAndShowLogin();
         }
-    };
+        else{
+            this.showLogoutAndSync();
+        }
+    },
+
+    /**
+     * TODO
+     */
+    loginCloud: function(url){
+        var icon = $loginDiv.find('img').attr('src');
+        icon = icon.substr(icon.lastIndexOf('/') + 1);
+
+        if(icon === 'login-large.png'){
+            doLogin($.proxy(function(){
+                $.mobile.hidePageLoadingMsg();
+                var userId = getCloudLogin().id;
+                if(userId){
+                    this.showLogoutAndSync();
+                }
+            }, this));
+        }
+        else {
+            this.logoutCloud();
+        }
+    },
+
+    /**
+     * TODO
+     */
+    logoutCloud: function(){
+        clearCloudLogin();
+        hideSyncAndShowLogin();
+    },
+
+    /**
+     * TODO
+     */
+    showLogoutAndSync: function(){
+        // Bug 5997 have to use full url due to jqm issue
+        $('#home-content-login img').attr(
+            'src',
+            utils.getDocumentBase() + 'plugins/sync/css/images/logout.png');
+        $('#home-content-login p').text('Logout');
+
+        // show sync button
+        $('#home-content-sync').show();
+        $('#home-content-upload').show();
+    },
+
+}
+
 });
