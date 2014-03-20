@@ -39,14 +39,14 @@ define(['utils'], function(utils){
     var cloudProviderUrl;
 
     /**
-     * TODO
+     * Store cloud user id in local storage.
      */
     var setCloudLogin = function(userId){
         localStorage.setItem('cloud-user', JSON.stringify({'id': userId}));
     };
 
     /**
-     * TODO
+     * Get the cloud login id from local storage.
      */
     var getCloudLogin = function(){
         return JSON.parse(localStorage.getItem('cloud-user'));
@@ -163,15 +163,14 @@ return {
     /**
      * TODO
      */
-    init: function(url){
-        cloudProviderUrl = url;
+    init: function(syncUtils){
+        cloudProviderUrl = syncUtils.cloudProviderUrl;
     },
 
     /**
      * Check if users session is valid.
      */
     checkLogin: function(){
-        console.log("=> " + this.userId);
         if(!this.userId){
             var userId = getCloudLogin().id;
             if(userId){
@@ -204,6 +203,13 @@ return {
         else{
             this.showLogoutAndSync();
         }
+    },
+
+    /**
+     * @return The cloud login user id.
+     */
+    getUserId: function(){
+        return this.userId;
     },
 
     /**

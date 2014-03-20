@@ -31,7 +31,7 @@ DAMAGE.
 
 "use strict";
 
-define(['settings', 'utils', 'config', './login'], function(settings, utils, config, login){
+define(['settings', 'utils', 'config', './login', './upload'], function(settings, utils, config, login, upload){
     var root;
     if(utils.isMobileDevice()){
         root = config["pcapi_url"];
@@ -43,10 +43,43 @@ define(['settings', 'utils', 'config', './login'], function(settings, utils, con
         }
     }
 
-    var cloudProviderUrl = root + "/" + config["pcapi_version"] + "/pcapi";
+    // some common sync utilities
+    var synUtils = {
+        cloudProviderUrl: root + "/" + config["pcapi_version"] + "/pcapi",
 
-    login.init(cloudProviderUrl);
+        /**
+         * Does this field define an asset?
+         * @param field Annotation record field.
+         * @param type Optional record type. If undefined it will be determied by the id.
+         */
+        isAsset: function(field, type) {
+            var isAsset = false;
+
+            if(type == undefined){
+                type = this.typeFromId(field.id);
+            }
+
+            if(type === 'image' || type === 'audio' || type === 'track'){
+                isAsset = true;
+            }
+
+            return isAsset;
+        },
+
+        /**
+         * Get type of asset from field id.
+         * @param id Field div id.
+         * @return The control type for a field id.
+         */
+        typeFromId: function(id){
+            var s = id.indexOf('-') + 1;
+            return id.substr(s, id.lastIndexOf('-') - s);
+        }
+    }
+
+    login.init(synUtils);
     login.checkLogin();
+    upload.init(synUtils);
 
     // TODO - what about unknown pages (e.g download)
     $(document).on('pageshow', '#home-page', function(event){
@@ -54,10 +87,12 @@ define(['settings', 'utils', 'config', './login'], function(settings, utils, con
     });
 
     $(document).on('vclick', '#home-content-login', function(){
-        login.loginCloud(cloudProviderUrl);
+        login.loginCloud();
     });
 
-    $(document).on('vclick', '#home-content-upload', function(){
-        upload.loginRecords();
-    });
+    $(document).on(
+        'vclick',
+        '#home-content-upload',
+        $.proxy(upload.uploadRecords, upload)
+    );
 });
