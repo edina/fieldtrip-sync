@@ -81,8 +81,13 @@ define(['settings', 'utils', 'config', './login', './upload'], function(settings
     login.checkLogin();
     upload.init(synUtils);
 
-    // TODO - what about unknown pages (e.g download)
+    // listen on home page
     $(document).on('pageshow', '#home-page', function(event){
+        login.checkLogin();
+    });
+
+    // listen on any page with class sync-page
+    $(document).on('pageshow', '.sync-page', function(event){
         login.checkLogin();
     });
 
@@ -92,7 +97,9 @@ define(['settings', 'utils', 'config', './login', './upload'], function(settings
 
     $(document).on(
         'vclick',
-        '#home-content-upload',
+        '.sync-upload-button',
         $.proxy(upload.uploadRecords, upload)
     );
+
+    $('head').prepend('<link rel="stylesheet" href="plugins/sync/css/style.css" type="text/css" />');
 });

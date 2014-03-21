@@ -35,16 +35,13 @@ DAMAGE.
  *
  */
 define(['records', 'map', 'utils', './login'], function(records, map, utils, login){
-
     /**
      * Create remote record.
      * @param record Record object to create remotely.
      * @param callback
      */
     var createRemoteRecord = function(id, record, callback) {
-        console.debug("createRemoteRecord ");
         var userId = login.getUserId();
-        console.debug("==> " + userId);
         var cloudProviderUrl = _this.syncUtils.cloudProviderUrl;
 
         // clone record for remote copy
@@ -54,15 +51,11 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
         var recordDir = cloudProviderUrl + '/records/dropbox/' +
             userId + '/' + record.name;
 
-        console.debug("===> " + recordDir);
-
         if(dropboxRecord.point !== undefined){
             // convert remote record coords to WGS84
             map.pointToExternal(dropboxRecord.point);
-
             // convert asset URLs to simple filename
             $.each(dropboxRecord.fields, function(i, field){
-                console.log(field);
                 if(field.val && _this.syncUtils.isAsset(field)){
                     field.val = field.val.substr(field.val.lastIndexOf('/') + 1);
                 }
@@ -180,9 +173,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
         // do upload sync
         var annotations = records.getSavedRecords();
         var uploadCount = 0;
-        console.debug(JSON.stringify(annotations, undefined, 2));
         $.each(annotations, function(id, annotation){
-            console.debug("=> " + id + annotation.isSynced);
             if(!annotation.isSynced){
                 $('#' + id + ' .ui-block-a').removeClass(
                     'saved-annotations-list-synced-false');

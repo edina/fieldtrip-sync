@@ -53,16 +53,16 @@ define(['utils'], function(utils){
     };
 
     /**
-     * TODO
+     * Unset user login id.
      */
     var clearCloudLogin = function(){
         localStorage.setItem('cloud-user', JSON.stringify({'id': undefined}));
     };
 
     /**
-     * TODO
+     * Hide sync related buttons.
      */
-    var hideSyncAndShowLogin = function(){
+    var hideSyncButtons = function(){
         $('#home-content-sync').hide();
         $('#home-content-upload').hide();
 
@@ -74,7 +74,9 @@ define(['utils'], function(utils){
     };
 
     /**
-     * TODO
+     * Login to cloud provider.
+     * @param callback Function called after login attemt.
+     * @param cbrowser Function to allow caller requires access to childbrowser.
      */
     var doLogin = function(callback, cbrowser){
         var loginUrl = cloudProviderUrl + '/auth/dropbox';
@@ -158,10 +160,35 @@ define(['utils'], function(utils){
         });
     };
 
+    /**
+     * Logout from cloud proviser.
+     */
+    var logoutCloud = function(){
+        clearCloudLogin();
+        hideSyncButtons();
+    };
+
+    /**
+     * Show buttons related to syncing.
+     */
+    var showSyncButtons = function(){
+        // Bug 5997 have to use full url due to jqm issue
+        $('.sync-login img').attr(
+            'src',
+            utils.getDocumentBase() + 'plugins/sync/css/images/logout.png');
+        $('.sync-login p').text('Logout');
+
+        // show sync buttons
+        $('.sync-button').show();
+        $('.sync-upload-button').show();
+        $('.sync-download-button').show();
+    };
+
 return {
 
     /**
-     * TODO
+     * Initialise this module.
+     * @param syncUtils Sync utility object.
      */
     init: function(syncUtils){
         cloudProviderUrl = syncUtils.cloudProviderUrl;
@@ -187,7 +214,7 @@ return {
                         }
 
                         //callback(data.state);
-                        this.showLogoutAndSync();
+                        showSyncButtons();
                     }, this),
                     error: function(error){
                         console.error("Error with user: " + url + " : " + error.msg);
@@ -197,11 +224,12 @@ return {
             }
             else{
                 console.debug("No user session saved");
-                login.logoutCloud();
+                logoutCloud();
             }
         }
         else{
-            this.showLogoutAndSync();
+            //logoutCloud();
+            showSyncButtons();
         }
     },
 
@@ -213,9 +241,9 @@ return {
     },
 
     /**
-     * TODO
+     * Login to cloud provider.
      */
-    loginCloud: function(url){
+    loginCloud: function(){
         var icon = $loginDiv.find('img').attr('src');
         icon = icon.substr(icon.lastIndexOf('/') + 1);
 
@@ -224,38 +252,15 @@ return {
                 $.mobile.hidePageLoadingMsg();
                 var userId = getCloudLogin().id;
                 if(userId){
-                    this.showLogoutAndSync();
+                    showSyncButtons();
                 }
             }, this));
         }
-        else {
-            this.logoutCloud();
+        else{
+            this.userId = undefined;
+            logoutCloud();
         }
     },
-
-    /**
-     * TODO
-     */
-    logoutCloud: function(){
-        clearCloudLogin();
-        hideSyncAndShowLogin();
-    },
-
-    /**
-     * TODO
-     */
-    showLogoutAndSync: function(){
-        // Bug 5997 have to use full url due to jqm issue
-        $('#home-content-login img').attr(
-            'src',
-            utils.getDocumentBase() + 'plugins/sync/css/images/logout.png');
-        $('#home-content-login p').text('Logout');
-
-        // show sync button
-        $('#home-content-sync').show();
-        $('#home-content-upload').show();
-    },
-
 }
 
 });

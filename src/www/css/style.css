@@ -1,0 +1,27 @@
+#saved-records-list .ui-block-a{
+    margin: 0;
+    padding: 0;
+    width: 15%;
+    height: 3.4em;
+}
+
+.saved-records-list-synced-true{
+    background-image: url("images/uploaded.png");
+    background-size: 38px 35px;
+    background-repeat: no-repeat;
+    background-position: 0 3px;
+}
+
+.saved-records-list-synced-false{
+    background-image: url("images/uploadrecord.png");
+    background-size: 38px 35px;
+    background-repeat: no-repeat;
+    background-position: 0 3px;
+}
+
+.saved-records-list-syncing{
+    background-image: url("themes/images/ajax-loader.gif");
+    background-size: 30px 30px;
+    background-repeat: no-repeat;
+    background-position: 5px 5px;
+}
