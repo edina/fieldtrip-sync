@@ -104,7 +104,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
 
                     // create any asserts associated with record
                     $.each(record.fields, function(i, field){
-                        var type = _this.syncUtils.typeFromId(field.id);
+                        var type = records.typeFromId(field.id);
                         if(_this.syncUtils.isAsset(field, type)){
                             ++assetCount;
                             var options = new FileUploadOptions();

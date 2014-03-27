@@ -31,7 +31,7 @@ DAMAGE.
 
 "use strict";
 
-define(['settings', 'utils', 'config', './login', './upload'], function(settings, utils, config, login, upload){
+define(['records', 'settings', 'utils', 'config', './login', './upload'], function(records, settings, utils, config, login, upload){
     var root;
     if(utils.isMobileDevice()){
         root = config["pcapi_url"];
@@ -45,7 +45,7 @@ define(['settings', 'utils', 'config', './login', './upload'], function(settings
 
     // some common sync utilities
     var synUtils = {
-        cloudProviderUrl: root + "/" + config["pcapi_version"] + "/pcapi",
+        cloudProviderUrl: root + "/" + config.pcapi_version + "/pcapi",
 
         /**
          * Does this field define an asset?
@@ -56,7 +56,7 @@ define(['settings', 'utils', 'config', './login', './upload'], function(settings
             var isAsset = false;
 
             if(type == undefined){
-                type = this.typeFromId(field.id);
+                type = records.typeFromId(field.id);
             }
 
             if(type === 'image' || type === 'audio' || type === 'track'){
@@ -65,17 +65,7 @@ define(['settings', 'utils', 'config', './login', './upload'], function(settings
 
             return isAsset;
         },
-
-        /**
-         * Get type of asset from field id.
-         * @param id Field div id.
-         * @return The control type for a field id.
-         */
-        typeFromId: function(id){
-            var s = id.indexOf('-') + 1;
-            return id.substr(s, id.lastIndexOf('-') - s);
-        }
-    }
+    };
 
     login.init(synUtils);
     login.checkLogin();

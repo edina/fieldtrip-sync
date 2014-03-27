@@ -48,8 +48,14 @@ define(['utils'], function(utils){
     /**
      * Get the cloud login id from local storage.
      */
-    var getCloudLogin = function(){
-        return JSON.parse(localStorage.getItem('cloud-user'));
+    var getCloudLoginId = function(){
+        var id;
+        var login = JSON.parse(localStorage.getItem('cloud-user'));
+        if(login){
+            id = login.id;
+        }
+
+        return id;
     };
 
     /**
@@ -83,8 +89,8 @@ define(['utils'], function(utils){
 
         var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
 
-        var userId = getCloudLogin().id
-        if(userId != undefined){
+        var userId = getCloudLoginId();
+        if(userId !== undefined){
             console.debug("got a user id: " + userId);
             loginUrl += '/' + userId;
         }
@@ -199,7 +205,7 @@ return {
      */
     checkLogin: function(){
         if(!this.userId){
-            var userId = getCloudLogin().id;
+            var userId = getCloudLoginId();
             if(userId){
                 var url = cloudProviderUrl + '/auth/dropbox/' + userId;
                 console.debug("Check user with: " + url);
@@ -250,7 +256,7 @@ return {
         if(icon === 'login-large.png'){
             doLogin($.proxy(function(){
                 $.mobile.hidePageLoadingMsg();
-                var userId = getCloudLogin().id;
+                var userId = getCloudLoginId();
                 if(userId){
                     showSyncButtons();
                 }
