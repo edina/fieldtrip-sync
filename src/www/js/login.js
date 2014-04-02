@@ -42,6 +42,7 @@ define(['utils'], function(utils){
      * Store cloud user id in local storage.
      */
     var setCloudLogin = function(userId){
+        _this.userId = userId;
         localStorage.setItem('cloud-user', JSON.stringify({'id': userId}));
     };
 
@@ -190,7 +191,7 @@ define(['utils'], function(utils){
         $('.sync-download-button').show();
     };
 
-return {
+var _this = {
 
     /**
      * Initialise this module.
@@ -267,6 +268,8 @@ return {
             logoutCloud();
         }
     },
-}
+};
+
+return _this;
 
 });
