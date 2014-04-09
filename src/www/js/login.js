@@ -39,11 +39,10 @@ define(['utils'], function(utils){
     var cloudProviderUrl;
 
     /**
-     * Store cloud user id in local storage.
+     * Get the cloud login from local storage.
      */
-    var setCloudLogin = function(userId){
-        _this.userId = userId;
-        localStorage.setItem('cloud-user', JSON.stringify({'id': userId}));
+    var getCloudLogin = function(){
+        return JSON.parse(localStorage.getItem('cloud-user'));
     };
 
     /**
@@ -104,7 +103,7 @@ define(['utils'], function(utils){
             url: loginUrl + '?async=true',
             timeout: 3000,
             cache: false,
-            success: $.proxy(function(data){
+            success: function(data){
                 console.debug("Redirect to: " + data.url);
                 var cloudUserId = data.userid;
 
@@ -128,12 +127,11 @@ define(['utils'], function(utils){
 
                             if(pollData.state === 1 || pollTimerCount > pollForMax){
                                 if(pollData.state === 1 ){
-                                    setCloudLogin(cloudUserId);
+                                    _this.setCloudLogin(cloudUserId);
                                 }
                                 cb.close();
                                 closeCb();
                             }
-
                         },
                         error: function(error){
                             console.error("Problem polling api: " + error.statusText);
@@ -147,7 +145,7 @@ define(['utils'], function(utils){
                     // caller may want access to child browser reference
                     cbrowser(cb);
                 }
-            }, this),
+            },
             error: function(jqXHR, textStatus){
                 var msg;
                 if(textStatus === undefined){
@@ -206,9 +204,9 @@ var _this = {
      */
     checkLogin: function(){
         if(!this.userId){
-            var userId = getCloudLoginId();
-            if(userId){
-                var url = cloudProviderUrl + '/auth/dropbox/' + userId;
+            var user = getCloudLogin();
+            if(user !== null && user.id){
+                var url = cloudProviderUrl + '/auth/dropbox/' + user.id;
                 console.debug("Check user with: " + url);
                 $.ajax({
                     type: 'GET',
@@ -217,7 +215,7 @@ var _this = {
                     cache: false,
                     success: $.proxy(function(data){
                         if(data.state === 1){
-                            this.userId = userId;
+                            this.setCloudLogin(user.id, user.cursor);
                         }
 
                         //callback(data.state);
@@ -241,10 +239,24 @@ var _this = {
     },
 
     /**
+     * @return The cloud login user.
+     */
+    getUser: function(){
+        return this.user;
+    },
+
+    /**
      * @return The cloud login user id.
      */
     getUserId: function(){
-        return this.userId;
+        return this.user.id;
+    },
+
+    /**
+     * @return The cloud login user cursor.
+     */
+    getUserCursor: function(){
+        return this.user.cursor;
     },
 
     /**
@@ -268,6 +280,18 @@ var _this = {
             logoutCloud();
         }
     },
+
+    /**
+     * Store cloud user id in local storage.
+     */
+    setCloudLogin: function(userId, cursor){
+        this.user = {
+            'id': userId,
+            'cursor': cursor
+        }
+
+        localStorage.setItem('cloud-user', JSON.stringify(this.user));
+    }
 };
 
 return _this;
