@@ -32,7 +32,7 @@ DAMAGE.
 "use strict";
 
 /**
- *
+ * Module deals with uploading records to Personal Cloud.
  */
 define(['records', 'map', 'utils', './login'], function(records, map, utils, login){
     /**
@@ -165,11 +165,21 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
         }
     };
 
+var _this = {
+
+    /**
+     * Initialise upload module.
+     * @param syncUtils common sync utilities.
+     */
+    init: function(syncUtils){
+        this.syncUtils = syncUtils;
+    },
+
     /**
      * Upload unsynced records.
      * @param complete Function executed when upload is complete.
      */
-    var syncUploadRecords = function(complete) {
+    uploadRecords: function(complete) {
         // do upload sync
         var annotations = records.getSavedRecords();
         var uploadCount = 0;
@@ -208,29 +218,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
             complete();
             utils.inform('Nothing to upload');
         }
-    };
-
-var _this = {
-
-    /**
-     * Initialise upload module.
-     * @param syncUtils common sync utilities.
-     */
-    init: function(syncUtils){
-        this.syncUtils = syncUtils;
     },
-
-    /**
-     * Uploads unsynced records to cloud provider.
-     */
-    uploadRecords: function(event){
-        event.preventDefault();
-        utils.showPageLoadingMsg('Upload Records');
-        syncUploadRecords(function(){
-            $.mobile.hidePageLoadingMsg();
-            $.mobile.changePage("saved-records.html");
-        });
-    }
 }
 
 return _this;

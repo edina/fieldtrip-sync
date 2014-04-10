@@ -1,0 +1,10 @@
+{
+    "popups": {
+        "popup2":{
+            "template": "home-sync-popup.html",
+            "data": {
+                "question": "Are you sure you want to exit Fieldtrip Open?"
+            }
+        }
+    }
+}
