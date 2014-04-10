@@ -1,5 +1,28 @@
 {
     "templates": {
         "saved-records-list-template": "saved-records-list-template.html"
+    },
+    "body": {
+        "buttons": {
+            "upload": {
+                "id": "saved-annotations-page-header-upload",
+                "data-role": "button",
+                "data-inline": "true",
+                "data-transition": "none",
+                "data-iconpos": "notext",
+                "data-shadow": "false",
+                "data-iconshadow": "false",
+                "style":"display: none;"
+            },
+            "sync": {
+                "id": "saved-annotations-page-header-login-sync",
+                "data-role": "button",
+                "data-inline": "true",
+                "data-transition": "none",
+                "data-iconpos":"notext",
+                "data-shadow":"false",
+                "data-iconshadow":"false"
+            }
+        }
     }
 }
