@@ -1,20 +1,16 @@
 {
     "name": "fieldtrip-sync",
     "version": "0.0.1",
-    "homepage": "Sync is a Fieldtrip Open plugin for synchronising fieldtrip-open with PCAPI (Personal Cloud API)",
-    "authors": [
-        "George Hamilton <george.hamilton@ed.ac.uk>",
-        "Panos Terzis <p.terzis@ed.ac.uk>"
-    ],
+    "homepage": "https://github.com/edina/fieldtrip-sync",
     "description": "Sync is a Fieldtrip Open plugin for synchronising fieldtrip-open with PCAPI (Personal Cloud API).",
     "main": "",
     "keywords": [
         "fieldtrip-open",
         "sync",
-        "pcapi",
+        "pcapi"
     ],
     "license": "BSD",
     "ignore": [
-        "**/.*",
+        "**/.*"
     ]
 }
