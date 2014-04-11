@@ -25,3 +25,26 @@
     background-repeat: no-repeat;
     background-position: 5px 5px;
 }
+
+#saved-records-page-header-login-sync.cloud-login{
+    background-image: url("images/login.png");
+    background-size: 26px 26px;
+    background-position: 5px 5px;
+    border: #b5c976 solid 1.5px;
+}
+
+#saved-records-page-header-upload{
+    background-image: url("images/upload.png");
+    background-size: 26px 26px;
+    background-position: 5px 5px;
+    border: #b5c976 solid 1.5px;
+    margin-right: 1em;
+}
+
+#saved-records-page-header-upload{
+    background-image: url("images/upload.png");
+    background-size: 26px 26px;
+    background-position: 5px 5px;
+    border: #b5c976 solid 1.5px;
+    margin-right: 1em;
+}

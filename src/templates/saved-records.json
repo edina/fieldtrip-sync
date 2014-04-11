@@ -3,9 +3,9 @@
         "saved-records-list-template": "saved-records-list-template.html"
     },
     "body": {
-        "buttons": {
+        "buttons-normal": {
             "upload": {
-                "id": "saved-annotations-page-header-upload",
+                "id": "saved-records-page-header-upload",
                 "data-role": "button",
                 "data-inline": "true",
                 "data-transition": "none",
@@ -15,7 +15,8 @@
                 "style":"display: none;"
             },
             "sync": {
-                "id": "saved-annotations-page-header-login-sync",
+                "id": "saved-records-page-header-login-sync",
+                "class": "cloud-login",
                 "data-role": "button",
                 "data-inline": "true",
                 "data-transition": "none",
