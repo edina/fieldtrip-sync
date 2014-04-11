@@ -1,6 +1,6 @@
 {
     "popups": {
-        "popup2":{
+        "popup4":{
             "template": "home-sync-popup.html",
             "data": {}
         }
