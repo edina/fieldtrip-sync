@@ -35,7 +35,6 @@ DAMAGE.
  * TODO
  */
 define(['utils'], function(utils){
-    var $loginDiv = $('#home-content-login');
     var cloudProviderUrl;
 
     /**
@@ -63,20 +62,6 @@ define(['utils'], function(utils){
      */
     var clearCloudLogin = function(){
         localStorage.setItem('cloud-user', JSON.stringify({'id': undefined}));
-    };
-
-    /**
-     * Hide sync related buttons.
-     */
-    var hideSyncButtons = function(){
-        $('#home-content-sync').hide();
-        $('#home-content-upload').hide();
-
-        // Bug 5997 have to use full url due to jqm issue
-        $('#home-content-login img').attr(
-            'src',
-            utils.getDocumentBase() + 'plugins/sync/css/images/login-large.png');
-        $('#home-content-login p').text('Login');
     };
 
     /**
@@ -108,9 +93,9 @@ define(['utils'], function(utils){
                 var cloudUserId = data.userid;
 
                 // close child browser
-                var closeCb = function(){
+                var closeCb = function(userId){
                     clearInterval(pollTimer);
-                    callback();
+                    callback(userId);
                 }
 
                 // open dropbox login in child browser
@@ -130,12 +115,12 @@ define(['utils'], function(utils){
                                     _this.setCloudLogin(cloudUserId);
                                 }
                                 cb.close();
-                                closeCb();
+                                closeCb(cloudUserId);
                             }
                         },
                         error: function(error){
                             console.error("Problem polling api: " + error.statusText);
-                            closeCb();
+                            closeCb(-1);
                         },
                         cache: false
                     });
@@ -165,30 +150,6 @@ define(['utils'], function(utils){
         });
     };
 
-    /**
-     * Logout from cloud proviser.
-     */
-    var logoutCloud = function(){
-        clearCloudLogin();
-        hideSyncButtons();
-    };
-
-    /**
-     * Show buttons related to syncing.
-     */
-    var showSyncButtons = function(){
-        // Bug 5997 have to use full url due to jqm issue
-        $('.sync-login img').attr(
-            'src',
-            utils.getDocumentBase() + 'plugins/sync/css/images/logout.png');
-        $('.sync-login p').text('Logout');
-
-        // show sync buttons
-        $('.sync-button').show();
-        $('.sync-upload-button').show();
-        $('.sync-download-button').show();
-    };
-
 var _this = {
 
     /**
@@ -201,8 +162,9 @@ var _this = {
 
     /**
      * Check if users session is valid.
+     * @param TODO
      */
-    checkLogin: function(){
+    checkLogin: function(callback){
         if(!this.userId){
             var user = getCloudLogin();
             if(user !== null && user.id){
@@ -218,67 +180,46 @@ var _this = {
                             this.setCloudLogin(user.id, user.cursor);
                         }
 
-                        //callback(data.state);
-                        showSyncButtons();
+                        callback(user.id);
                     }, this),
-                    error: function(error){
+                    error: $.proxy(function(error){
                         console.error("Error with user: " + url + " : " + error.msg);
-                        login.logoutCloud();
-                    }
+                        this.logoutCloud();
+                    }, this)
                 });
             }
             else{
                 console.debug("No user session saved");
-                logoutCloud();
+                this.logoutCloud();
             }
         }
         else{
-            //logoutCloud();
-            showSyncButtons();
+            callback(this.userId);
         }
     },
 
     /**
      * @return The cloud login user.
+     *   id - cloud user id
+     *   cursor - cursor of last sync.
      */
     getUser: function(){
         return this.user;
     },
 
     /**
-     * @return The cloud login user id.
+     * Login to cloud provider.
      */
-    getUserId: function(){
-        return this.user.id;
-    },
-
-    /**
-     * @return The cloud login user cursor.
-     */
-    getUserCursor: function(){
-        return this.user.cursor;
+    loginCloud: function(callback){
+        doLogin(callback);
     },
 
     /**
      * Login to cloud provider.
      */
-    loginCloud: function(){
-        var icon = $loginDiv.find('img').attr('src');
-        icon = icon.substr(icon.lastIndexOf('/') + 1);
-
-        if(icon === 'login-large.png'){
-            doLogin($.proxy(function(){
-                $.mobile.hidePageLoadingMsg();
-                var userId = getCloudLoginId();
-                if(userId){
-                    showSyncButtons();
-                }
-            }, this));
-        }
-        else{
-            this.userId = undefined;
-            logoutCloud();
-        }
+    logoutCloud: function(){
+        this.user = undefined;
+        clearCloudLogin();
     },
 
     /**
