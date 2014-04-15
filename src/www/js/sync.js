@@ -68,6 +68,127 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
     };
 
     /**
+     * Set up buttons according to whether user if logged in.
+     */
+    var checkLogin = function(){
+        if(login.getUser()){
+            showSyncButtons();
+        }
+        else{
+            hideSyncButtons();
+        }
+    };
+
+    /**
+     * Hide sync related buttons.
+     */
+    var hideSyncButtons = function(){
+        $('.sync-button').hide();
+        $('.sync-upload-button').hide();
+
+        // Bug 5997 have to use full url due to jqm issue
+        $('.sync-login img').attr(
+            'src',
+            utils.getDocumentBase() + 'plugins/sync/css/images/login-large.png');
+        $('.sync-login p').text('Login');
+    };
+
+    /**
+     * Set up records page for syncing.
+     */
+    var recordsPage = function(){
+        var addAnnotation = function(id, annotation){
+            $('#saved-records-list-list').append(
+                '<li id="' + id + '"><div class="ui-grid-b"> \
+                   <div class="ui-block-a saved-records-list-synced-' + annotation.isSynced + '">\
+                   </div>\
+                   <div class="ui-block-b saved-record-view">\
+                     <a href="#">' + annotation.record.name + '</a>\
+                   </div>\
+                   <div class="ui-block-c">\
+                     <a href="#" class="saved-record-delete" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="a"></a>\
+                   </div>\
+                 </div></li>').trigger('create');
+        }
+
+        /**
+         * Show upload and sync button on records page header
+         */
+        var showSyncButtons = function(){
+            $('#saved-records-page-header-login-sync').removeClass(
+                'cloud-login');
+            $('#saved-records-page-header-login-sync').addClass(
+                'cloud-sync');
+            $('#saved-records-page-header-upload').show();
+        };
+
+        var hideSyncButtons = function(){
+            $('#saved-records-page-header-login-sync').addClass('cloud-login');
+            $('#saved-records-page-header-upload').hide();
+        };
+
+        // sync / login button
+        $(document).off('vmousedown', '#saved-records-page-header-login-sync');
+        $(document).on(
+            'vmousedown',
+            '#saved-records-page-header-login-sync',
+            function(event){
+                event.stopImmediatePropagation();
+                if($('#saved-records-page-header-login-sync.cloud-sync').length > 0){
+                    sync({
+                        div: 'saved-records-sync-popup',
+                        callback: function(add, id, annotation){
+                            if(add){
+                                addAnnotation(id, annotation);
+                            }
+                            else{
+                                // if not add then delete
+                                $('#' + id).slideUp('slow');
+                            }
+                        },
+                        complete: function(){
+                            $('#saved-annotations-list-list').listview('refresh');
+                        }
+                    });
+                }
+                else{
+                    login.loginCloud(function(userId){
+                        if(userId){
+                            showSyncButtons();
+                        }
+                    });
+                }
+            }
+        );
+
+        if(login.getUser()){
+            // $('#saved-records-page-header-login-sync').addClass('cloud-sync');
+            // $('#saved-records-page-header-upload').show();
+            showSyncButtons();
+        }
+        else{
+            //$('#saved-records-page-header-login-sync').addClass('cloud-login');
+            hideSyncButtons();
+        }
+    };
+
+    /**
+     * Show buttons for syncing.
+     */
+    var showSyncButtons = function(){
+        // Bug 5997 have to use full url due to jqm issue
+        $('.sync-login img').attr(
+            'src',
+            utils.getDocumentBase() + 'plugins/sync/css/images/logout.png');
+        $('.sync-login p').text('Logout');
+
+        // show sync button
+        $('.sync-upload-button').show();
+        $('.sync-button').show();
+        $('.sync-download-button').show();
+    };
+
+    /**
      * Sync device with cloud.
      * @param div - The div to append confirmation popup.
      * @param options:
@@ -116,7 +237,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
                 };
 
                 // sync uploaded records with dropbox
-                if(login.getUserCursor() === undefined){
+                if(login.getUser().cursor === undefined){
                     // no cursor found do a full sync
                     download.downloadEditors(function(success){
                         if(success){
@@ -157,7 +278,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
      * Store current dropbox state cursor with cloud login details.
      */
     var syncStoreCursor = function(){
-        var userId = login.getUserId();
+        var userId = login.getUser().id;
         //var user = this.db.getCloudLogin();
         var url = syncUtils.cloudProviderUrl + '/sync/dropbox/' + userId;
         $.ajax({
@@ -256,7 +377,8 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
                         // fetched once
                         if($.inArray(details.val, rList) === -1){
                             // just download the record and assets
-                            var record = this.getAnnotationDetails(details.val);
+                            var record = records.getAnnotationDetails(details.val);
+
                             ++jobs;
                             rList.push(details.val);
                             download.downloadRecord(
@@ -299,22 +421,39 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
     };
 
     login.init(syncUtils);
-    login.checkLogin();
     upload.init(syncUtils);
     download.init(syncUtils);
 
-    // listen on home page
-    $(document).on('pageshow', '#home-page', function(event){
-        login.checkLogin();
+    login.checkLogin(function(userId){
+        if(userId){
+            showSyncButtons();
+        }
     });
+
+    // listen on home page
+    $(document).on('pageshow', '#home-page', checkLogin);
+
+    // listen on saved records page
+    $(document).on('pageshow', '#saved-records-page', recordsPage);
 
     // listen on any page with class sync-page
-    $(document).on('pageshow', '.sync-page', function(event){
-        login.checkLogin();
-    });
+    $(document).on('pageshow', '.sync-page', checkLogin);
 
     $(document).on('vclick', '#home-content-login', function(){
-        login.loginCloud();
+        var icon = $('#home-content-login img').attr('src');
+        icon = icon.substr(icon.lastIndexOf('/') + 1);
+
+        if(icon === 'login-large.png'){
+            login.loginCloud(function(userId){
+                if(userId){
+                    showSyncButtons();
+                }
+            });
+        }
+        else {
+            login.logoutCloud();
+            hideSyncButtons();
+        }
     });
 
     $(document).on(

@@ -20,10 +20,17 @@
 }
 
 .saved-records-list-syncing{
-    background-image: url("themes/images/ajax-loader.gif");
+    background-image: url("images/ajax-loader.gif");
     background-size: 30px 30px;
     background-repeat: no-repeat;
     background-position: 5px 5px;
+}
+
+#saved-records-page-header-login-sync.cloud-sync{
+  	background-image: url("images/sync.png");
+    background-size: 26px 26px;
+    background-position: 5px 5px;
+    border: #b5c976 solid 1.5px;
 }
 
 #saved-records-page-header-login-sync.cloud-login{
@@ -31,14 +38,6 @@
     background-size: 26px 26px;
     background-position: 5px 5px;
     border: #b5c976 solid 1.5px;
-}
-
-#saved-records-page-header-upload{
-    background-image: url("images/upload.png");
-    background-size: 26px 26px;
-    background-position: 5px 5px;
-    border: #b5c976 solid 1.5px;
-    margin-right: 1em;
 }
 
 #saved-records-page-header-upload{
