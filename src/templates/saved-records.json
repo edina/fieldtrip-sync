@@ -6,6 +6,7 @@
         "buttons-normal": {
             "upload": {
                 "id": "saved-records-page-header-upload",
+                "class": "sync-upload-button",
                 "data-role": "button",
                 "data-inline": "true",
                 "data-transition": "none",
@@ -24,6 +25,12 @@
                 "data-shadow":"false",
                 "data-iconshadow":"false"
             }
+        }
+    },
+    "popups":{
+        "popup3":{
+            "template": "saved-records-sync-popup.html",
+            "data": {}
         }
     }
 }

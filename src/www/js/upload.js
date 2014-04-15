@@ -35,13 +35,14 @@ DAMAGE.
  * Module deals with uploading records to Personal Cloud.
  */
 define(['records', 'map', 'utils', './login'], function(records, map, utils, login){
+
     /**
      * Create remote record.
      * @param record Record object to create remotely.
      * @param callback
      */
     var createRemoteRecord = function(id, record, callback) {
-        var userId = login.getUserId();
+        var userId = login.getUser().id;
         var cloudProviderUrl = _this.syncUtils.cloudProviderUrl;
 
         // clone record for remote copy
@@ -186,25 +187,25 @@ var _this = {
         $.each(annotations, function(id, annotation){
             if(!annotation.isSynced){
                 $('#' + id + ' .ui-block-a').removeClass(
-                    'saved-annotations-list-synced-false');
+                    'saved-records-list-synced-false');
                 $('#' + id + ' .ui-block-a').addClass(
-                    'saved-annotations-list-syncing');
+                    'saved-records-list-syncing');
 
                 ++uploadCount;
                 createRemoteRecord(id, annotation.record, function(success){
                     --uploadCount;
                     $('#' + id + ' .ui-block-a').removeClass(
-                        'saved-annotations-list-syncing');
+                        'saved-records-list-syncing');
                     if(success){
                         $('#' + id + ' .ui-block-a').addClass(
-                            'saved-annotations-list-synced-true');
+                            'saved-records-list-synced-true');
 
                         annotation.isSynced = true;
                         records.saveAnnotation(id, annotation);
                     }
                     else{
                         $('#' + id + ' .ui-block-a').addClass(
-                            'saved-annotations-list-synced-false');
+                            'saved-records-list-synced-false');
                     }
 
                     if(uploadCount === 0){

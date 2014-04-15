@@ -52,8 +52,8 @@ return {
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadEditor: function(editor, callback){
-        var userId = login.getUserId();
-        var root = _this.syncUtils.cloudProviderUrl + '/fs/dropbox/' + userId;
+        var userId = login.getUser().id;
+        var root = this.syncUtils.cloudProviderUrl + '/fs/dropbox/' + userId;
         var editorUrl = root + "/editors/" + editor;
 
         $.ajax({
@@ -91,7 +91,7 @@ return {
      */
     downloadEditors: function(callback) {
         utils.inform("Sync editors ...");
-        var userId = login.getUserId();
+        var userId = login.getUser().id;
 
         var finished = function(success){
             if(callback){
@@ -157,7 +157,7 @@ return {
         utils.inform("Sync records ...");
 
         var annotations = records.getSavedRecords();
-        var userId = login.getUserId();
+        var userId = login.getUser().id;
 
         // all locally synced records will first be deleted
         $.each(annotations, function(id, annotation){
@@ -261,8 +261,8 @@ return {
      * downloaded.
      */
     downloadRecord: function(name, callback, orgRecord){
-        var rootUrl = _this.syncUtils.cloudProviderUrl + '/records/dropbox/' +
-            login.getUserId() + "/" + name;
+        var rootUrl = this.syncUtils.cloudProviderUrl + '/records/dropbox/' +
+            login.getUser().id + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 
         var assetCount = 0;
@@ -317,15 +317,15 @@ return {
             dataType: "json",
             url: recordUrl,
             cache: false,
-            success: function(record){
+            success: $.proxy(function(record){
                 //utils.printObj(record);
 
                 // convert coordinates to national grid
                 map.pointToInternal(record.point);
 
                 //  fetch assets and convert URLs
-                $.each(record.fields, function(i, field){
-                    if(_this.syncUtils.isAsset(field)){
+                $.each(record.fields, $.proxy(function(i, field){
+                    if(this.syncUtils.isAsset(field)){
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
@@ -356,12 +356,12 @@ return {
                             }
                         );
                     }
-                });
+                }, this));
 
                 if(assetCount === 0){
                     finished(record, true);
                 }
-            },
+            }, this),
             error: function(error){
                 var msg = "Failed to fetch record " + name;
                 console.error(msg);
@@ -371,7 +371,5 @@ return {
         });
     }
 }
-
-return _this;
 
 });
