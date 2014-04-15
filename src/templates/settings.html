@@ -1,0 +1,10 @@
+<div data-role="fieldcontain">
+  <label for="settings-pcapi-url" class="select">PCAPI:</label>
+  <select id="settings-pcapi-url" name="settings-entry">
+  {% if settings|length > 0 %}
+    {% for key, value in settings.iteritems() %}
+      <option value="{{value}}">{{key}}</option>
+    {% endfor %}
+  {% endif %}
+  </select>
+</div>
