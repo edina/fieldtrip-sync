@@ -3,7 +3,7 @@
   <select id="settings-pcapi-url" name="settings-entry">
   {% if settings|length > 0 %}
     {% for key, value in settings.iteritems() %}
-      <option value="{{value}}">{{key}}</option>
+      <option value="{{value}}" {% if loop.index0 == 0 %} selected="selected" {% endif %}>{{key}}</option>
     {% endfor %}
   {% endif %}
   </select>
