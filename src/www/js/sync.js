@@ -420,9 +420,13 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         });
     };
 
-    login.init(syncUtils);
-    upload.init(syncUtils);
-    download.init(syncUtils);
+    var updateURL = function(){
+        login.init(syncUtils);
+        upload.init(syncUtils);
+        download.init(syncUtils);
+    };
+
+    updateURL();
 
     login.checkLogin(function(userId){
         if(userId){
@@ -492,6 +496,11 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
             });
         }
     );
+
+    $(document).on('change', '#settings-pcapi-url', function(){
+        root = $('#settings-pcapi-url option:selected').val();
+        updateURL();
+    });
 
     $('head').prepend('<link rel="stylesheet" href="plugins/sync/css/style.css" type="text/css" />');
 });
