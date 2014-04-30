@@ -43,7 +43,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
      */
     var createRemoteRecord = function(id, record, callback) {
         var userId = login.getUser().id;
-        var cloudProviderUrl = _this.syncUtils.cloudProviderUrl;
+        var cloudProviderUrl = _this.syncUtils.getCloudProviderUrl();
 
         // clone record for remote copy
         var dropboxRecord = jQuery.extend(true, {}, record);

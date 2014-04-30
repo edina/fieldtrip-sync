@@ -32,20 +32,16 @@ DAMAGE.
 "use strict";
 
 define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', './download'], function(records, map, settings, utils, config, login, upload, download){
-    var root;
-    if(utils.isMobileDevice()){
-        root = config["pcapi_url"];
-    }
-    else{
-        root = 'http://' + location.hostname;
-        if(location.port){
-            root += ':' + location.port
-        }
-    }
 
     // some common sync utilities
     var syncUtils = {
-        cloudProviderUrl: root + "/" + config.pcapi_version + "/pcapi",
+        /**
+         * @return The URL to the cloud provider.
+         */
+        getCloudProviderUrl: function() {
+            console.log("** " + this.cloudProviderUrl);
+            return this.cloudProviderUrl;
+        },
 
         /**
          * Does this field define an asset?
@@ -65,6 +61,15 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
 
             return isAsset;
         },
+
+        /**
+         * Set the cloud provider URL.
+         * @param root The Server URL root.
+         */
+        setCloudProviderUrl: function(root) {
+            this.cloudProviderUrl = root + "/" + config.pcapi_version + "/pcapi";
+            console.log("* " + this.cloudProviderUrl);
+        }
     };
 
     /**
@@ -420,13 +425,26 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         });
     };
 
-    var updateURL = function(){
-        login.init(syncUtils);
-        upload.init(syncUtils);
-        download.init(syncUtils);
-    };
+    var root;
+    if(utils.isMobileDevice()){
+        // check settings first for defined pcapi root url
+        root = settings.get("pcapi-url");
+        if(root === undefined){
+            root = config["pcapi_url"];
+        }
+    }
+    else{
+        root = 'http://' + location.hostname;
+        if(location.port){
+            root += ':' + location.port
+        }
+    }
+    syncUtils.setCloudProviderUrl(root);
 
-    updateURL();
+
+    login.init(syncUtils);
+    upload.init(syncUtils);
+    download.init(syncUtils);
 
     login.checkLogin(function(userId){
         if(userId){
@@ -498,8 +516,8 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
     );
 
     $(document).on('change', '#settings-pcapi-url', function(){
-        root = $('#settings-pcapi-url option:selected').val();
-        updateURL();
+        syncUtils.setCloudProviderUrl(
+            $('#settings-pcapi-url option:selected').val());
     });
 
     $('head').prepend('<link rel="stylesheet" href="plugins/sync/css/style.css" type="text/css" />');

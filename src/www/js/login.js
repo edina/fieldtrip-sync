@@ -35,8 +35,6 @@ DAMAGE.
  * TODO
  */
 define(['utils'], function(utils){
-    var cloudProviderUrl;
-
     /**
      * Get the cloud login from local storage.
      */
@@ -70,7 +68,7 @@ define(['utils'], function(utils){
      * @param cbrowser Function to allow caller requires access to childbrowser.
      */
     var doLogin = function(callback, cbrowser){
-        var loginUrl = cloudProviderUrl + '/auth/dropbox';
+        var loginUrl = _this.syncUtils.getCloudProviderUrl() + '/auth/dropbox';
 
         var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
 
@@ -157,7 +155,7 @@ var _this = {
      * @param syncUtils Sync utility object.
      */
     init: function(syncUtils){
-        cloudProviderUrl = syncUtils.cloudProviderUrl;
+        this.syncUtils = syncUtils;
     },
 
     /**
@@ -168,7 +166,7 @@ var _this = {
         if(!this.userId){
             var user = getCloudLogin();
             if(user !== null && user.id){
-                var url = cloudProviderUrl + '/auth/dropbox/' + user.id;
+                var url = this.syncUtils.getCloudProviderUrl() + '/auth/dropbox/' + user.id;
                 console.debug("Check user with: " + url);
                 $.ajax({
                     type: 'GET',

@@ -53,7 +53,7 @@ return {
      */
     downloadEditor: function(editor, callback){
         var userId = login.getUser().id;
-        var root = this.syncUtils.cloudProviderUrl + '/fs/dropbox/' + userId;
+        var root = this.syncUtils.getCloudProviderUrl() + '/fs/dropbox/' + userId;
         var editorUrl = root + "/editors/" + editor;
 
         $.ajax({
@@ -100,7 +100,7 @@ return {
         };
 
         records.deleteAllEditors($.proxy(function(){
-            var url = this.syncUtils.cloudProviderUrl + '/editors/dropbox/' +
+            var url = this.syncUtils.getCloudProviderUrl() + '/editors/dropbox/' +
                 userId +'/';
 
             console.debug("Sync editors with " + url);
@@ -171,7 +171,7 @@ return {
             }
         });
 
-        var recordsDir = this.syncUtils.cloudProviderUrl +
+        var recordsDir = this.syncUtils.getCloudProviderUrl() +
             '/records/dropbox/' + userId + "/";
         var downloadQueue = [];
         var count = 0;
@@ -261,7 +261,7 @@ return {
      * downloaded.
      */
     downloadRecord: function(name, callback, orgRecord){
-        var rootUrl = this.syncUtils.cloudProviderUrl + '/records/dropbox/' +
+        var rootUrl = this.syncUtils.getCloudProviderUrl() + '/records/dropbox/' +
             login.getUser().id + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 
