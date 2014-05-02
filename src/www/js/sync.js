@@ -39,7 +39,6 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
          * @return The URL to the cloud provider.
          */
         getCloudProviderUrl: function() {
-            console.log("** " + this.cloudProviderUrl);
             return this.cloudProviderUrl;
         },
 
@@ -68,7 +67,6 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
          */
         setCloudProviderUrl: function(root) {
             this.cloudProviderUrl = root + "/" + config.pcapi_version + "/pcapi";
-            console.log("* " + this.cloudProviderUrl);
         }
     };
 
