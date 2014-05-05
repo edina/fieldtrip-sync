@@ -54,7 +54,8 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
 
         if(dropboxRecord.point !== undefined){
             // convert remote record coords to WGS84
-            map.pointToExternal(dropboxRecord.point);
+            dropboxRecord.point = map.pointToExternal(dropboxRecord.point);
+
             // convert asset URLs to simple filename
             $.each(dropboxRecord.fields, function(i, field){
                 if(field.val && _this.syncUtils.isAsset(field)){

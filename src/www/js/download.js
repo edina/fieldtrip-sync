@@ -321,7 +321,7 @@ return {
                 //utils.printObj(record);
 
                 // convert coordinates to national grid
-                map.pointToInternal(record.point);
+                record.point = map.pointToInternal(record.point);
 
                 //  fetch assets and convert URLs
                 $.each(record.fields, $.proxy(function(i, field){
