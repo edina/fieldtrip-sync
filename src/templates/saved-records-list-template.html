@@ -21,12 +21,12 @@
         <%}%>
 
         <% if (type === "image") { %>
-            <img class="saved-records-view" src="<%=field.val%>" width=100%"/>
+        <img class="saved-records-view" src="<%=field.val%>" alt="<%=annotation.record.name%>"/>
         <%}%>
 
         <% if (type === "audio") { %>
         <p>Audio Recording</p>
-        <img id="audio-icon" src="css/images/audio.png" width=100%"/>
+        <img id="audio-icon" src="css/images/audio.png" alt="<%=annotation.record.name%>"/>
         <%}%>
 
         <% }); %>
