@@ -34,7 +34,8 @@ DAMAGE.
 /**
  * Module deals with download records/forms from the Personal Cloud.
  */
-define(['records', 'map', 'utils', './login'], function(records, map, utils, login){
+define(['records', 'map', 'utils', './login'],
+       function(records, map, utils, login){ // jshint ignore:line
 
 return {
 
@@ -62,9 +63,9 @@ return {
             success: function(data){
                 if(typeof(data.error) === 'undefined'){
                     var s = editor.lastIndexOf('/') + 1;
-                    utils.writeToFile(
+                    utils.writeToFile({"fileName":
                         editor,
-                        data,
+                        "data": data},
                         records.getEditorsDir(),
                         callback
                     );
@@ -217,7 +218,7 @@ return {
                         for(var name in record){
                             downloadQueue.push(name);
                             break;
-                        };
+                        }
                     });
 
                     if(downloadQueue.length === 0){
@@ -270,8 +271,7 @@ return {
             --assetCount;
 
             if(assetCount < 1){
-                var id = undefined;
-                var annotation = undefined;
+                var id, annotation;
                 var delay = 0;
 
                 if(success){
@@ -329,7 +329,7 @@ return {
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
-                        var target = records.getAssetsDir().toURL() + "/" +
+                        var target = utils.getFilePath(records.getAssetsDir()) + "/" +
                             name + "/" + field.val;
 
                         console.debug("download: " + source + " to " + target);
@@ -338,10 +338,10 @@ return {
                             encodeURI(source),
                             target,
                             function(entry) {
-                                console.debug("download complete: " + entry.fullPath);
+                                console.debug("download complete: " + utils.getFilePath(entry));
 
                                 // asset local path becomes new record field val
-                                field.val = entry.fullPath;
+                                field.val = utils.getFilePath(entry);
 
                                 finished(record, true);
                             },
@@ -351,7 +351,7 @@ return {
                                 console.error("Problem downloading asset: " + error.source +
                                               " to: " + error.target +
                                               " error: " + utils.getFileTransferErrorMsg(error) +
-                                              "http status: " + error.http_status);
+                                              "http status: " + error.http_status);// jshint ignore:line
                                 finished(record, false);
                             }
                         );
@@ -370,6 +370,6 @@ return {
             }
         });
     }
-}
+};
 
 });
