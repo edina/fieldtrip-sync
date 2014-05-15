@@ -62,9 +62,9 @@ return {
             success: function(data){
                 if(typeof(data.error) === 'undefined'){
                     var s = editor.lastIndexOf('/') + 1;
-                    utils.writeToFile(
+                    utils.writeToFile({"fileName":
                         editor,
-                        data,
+                        "data": data},
                         records.getEditorsDir(),
                         callback
                     );
@@ -329,7 +329,7 @@ return {
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
-                        var target = records.getAssetsDir().toURL() + "/" +
+                        var target = utils.getFilePath(records.getAssetsDir()) + "/" +
                             name + "/" + field.val;
 
                         console.debug("download: " + source + " to " + target);
@@ -338,10 +338,10 @@ return {
                             encodeURI(source),
                             target,
                             function(entry) {
-                                console.debug("download complete: " + entry.fullPath);
+                                console.debug("download complete: " + utils.getFilePath(entry));
 
                                 // asset local path becomes new record field val
-                                field.val = entry.fullPath;
+                                field.val = utils.getFilePath(entry);
 
                                 finished(record, true);
                             },
