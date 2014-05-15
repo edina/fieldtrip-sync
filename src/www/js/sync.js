@@ -31,7 +31,10 @@ DAMAGE.
 
 "use strict";
 
-define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', './download'], function(records, map, settings, utils, config, login, upload, download){
+/* jshint multistr: true */
+
+define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', './download'], function(// jshint ignore:line
+    records, map, settings, utils, config, login, upload, download){
 
     // some common sync utilities
     var syncUtils = {
@@ -50,7 +53,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         isAsset: function(field, type) {
             var isAsset = false;
 
-            if(type == undefined){
+            if(type === undefined){
                 type = records.typeFromId(field.id);
             }
 
@@ -66,7 +69,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
          * @param root The Server URL root.
          */
         setCloudProviderUrl: function(root) {
-            this.cloudProviderUrl = root + "/" + config.pcapi_version + "/pcapi";
+            this.cloudProviderUrl = root + "/" + config.pcapiversion + "/pcapi";
         }
     };
 
@@ -112,7 +115,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
                      <a href="#" class="saved-record-delete" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="a"></a>\
                    </div>\
                  </div></li>').trigger('create');
-        }
+        };
 
         /**
          * Show upload and sync button on records page header
@@ -333,7 +336,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
             return {
                 'type': path.substr(1, 7),
                 'val': val
-            }
+            };
         };
 
         // sync records
@@ -428,13 +431,13 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         // check settings first for defined pcapi root url
         root = settings.get("pcapi-url");
         if(root === undefined){
-            root = config["pcapi_url"];
+            root = config.pcapiurl;
         }
     }
     else{
         root = 'http://' + location.hostname;
         if(location.port){
-            root += ':' + location.port
+            root += ':' + location.port;
         }
     }
     syncUtils.setCloudProviderUrl(root);
@@ -507,7 +510,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
             sync({
                 div: 'home-sync-popup',
                 complete: function(){
-                    $.mobile.changePage('capture.html')
+                    $.mobile.changePage('capture.html');
                 }
             });
         }
