@@ -484,7 +484,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
             utils.showPageLoadingMsg('Upload Records ...');
             upload.uploadRecords(function(){
                 $.mobile.hidePageLoadingMsg();
-                $.mobile.changePage("saved-records.html");
+                $.mobile.changePage("saved-tracks-records.html");
             });
         }
     );
