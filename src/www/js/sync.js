@@ -507,7 +507,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
             sync({
                 div: 'home-sync-popup',
                 complete: function(){
-                    $.mobile.changePage('capture.html')
+                    $.mobile.changePage("saved-tracks-records.html");
                 }
             });
         }
