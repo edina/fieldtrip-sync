@@ -94,7 +94,7 @@ define(['utils'], function(utils){
                 var closeCb = function(userId){
                     clearInterval(pollTimer);
                     callback(userId);
-                }
+                };
 
                 // open dropbox login in child browser
                 var cb = window.open(data.url, '_blank', 'location=no');
@@ -132,7 +132,7 @@ define(['utils'], function(utils){
             error: function(jqXHR, textStatus){
                 var msg;
                 if(textStatus === undefined){
-                    textStatus = ' Unspecified Error.'
+                    textStatus = ' Unspecified Error.';
                 }
                 else if(textStatus === "timeout") {
                     msg = "Unable to login, please enable data connection.";
@@ -208,8 +208,8 @@ var _this = {
     /**
      * Login to cloud provider.
      */
-    loginCloud: function(callback){
-        doLogin(callback);
+    loginCloud: function(cb, cbrowser){
+        doLogin(cb, cbrowser);
     },
 
     /**
@@ -227,7 +227,7 @@ var _this = {
         this.user = {
             'id': userId,
             'cursor': cursor
-        }
+        };
 
         localStorage.setItem('cloud-user', JSON.stringify(this.user));
     }
