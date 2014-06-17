@@ -110,7 +110,6 @@ sys:{
                                         },
                                         'cb': function(success){
                                             ok(success, 'sync complete');
-                                            //start();
                                             sts.complete();
                                         },
                                         'attempts': 1000,
@@ -120,6 +119,35 @@ sys:{
                             });
                         });
                     });
+                });
+            });
+
+            asyncTest("Test Logout", function(){
+                var doTest = function(){
+                    sts.clickAndTest({
+                        'id': '#home-content-login a',
+                        'test':function(){
+                            if($('#home-content-login p').text() === 'Login'){
+                                return true;
+                            }
+                        },
+                        'cb': function(success){
+                            ok(success, 'Logged of dropbox');
+                            sts.complete();
+                        }
+                    });
+
+                };
+
+                sts.goHome(function(){
+                    if($('#home-content-login p').text() === 'Login'){
+                        login.loginCloud(function(){
+                            doTest();
+                        });
+                    }
+                    else{
+                        doTest();
+                    }
                 });
             });
         }
