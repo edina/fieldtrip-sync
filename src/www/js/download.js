@@ -323,30 +323,37 @@ return {
                 // convert coordinates to national grid
                 record.point = map.pointToInternal(record.point);
 
+
+                var assetsDir = records.getAssetsDir();
+
                 //  fetch assets and convert URLs
                 $.each(record.fields, $.proxy(function(i, field){
                     if(this.syncUtils.isAsset(field)){
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
-                        var target = records.getAssetsDir().toURL() + "/" +
-                            name + "/" + field.val;
-
+                        var target = assetsDir.toInternalURL() + field.val;
+                        // hack alert - wavs are saved in the same dir as assets rather than in assets
+                        // needs fixed in audio.js, but this will have to do for now.
+                        if(record.editor === 'audio.edtr'){
+                            target = "cdvfile://localhost/persistent/" + field.val;
+                        }
                         console.debug("download: " + source + " to " + target);
-
                         new FileTransfer().download(
                             encodeURI(source),
-                            target,
+                            encodeURI(target),
                             function(entry) {
                                 console.debug("download complete: " + entry.fullPath);
 
                                 // asset local path becomes new record field val
-                                field.val = entry.fullPath;
+                                // field.val = entry.fullPath;
+                                field.val = assetsDir.toURL() + entry.name;
 
                                 finished(record, true);
                             },
                             function(error) {
                                 // if this fails first check whitelist in cordova.xml
+                                console.log(error.body);
                                 utils.informError("Problem syncing " + name);
                                 console.error("Problem downloading asset: " + error.source +
                                               " to: " + error.target +
