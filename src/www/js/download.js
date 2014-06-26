@@ -49,36 +49,38 @@ return {
 
     /**
      * Download editor from dropbox.
-     * @param editor The editor name.
+     * @param options.fileName the name of editor
+     * @param options.dirName the name of the directory on the server
+     * @param options.directory the local directory where the item will be downloaded.
      * @param callback Function will be called when editor is successfully downloaded.
      */
-    downloadEditor: function(editor, callback){
+    downloadItem: function(options, callback){
         var userId = login.getUser().id;
         var root = this.syncUtils.getCloudProviderUrl() + '/fs/dropbox/' + userId;
-        var editorUrl = root + "/editors/" + editor;
+        var itemUrl = root + "/"+ options.dirName +"/" + options.fileName;
 
         $.ajax({
             type: "GET",
-            url: editorUrl,
+            url: itemUrl,
             success: function(data){
                 if(typeof(data.error) === 'undefined'){
-                    var s = editor.lastIndexOf('/') + 1;
+                    var s = options.fileName.lastIndexOf('/') + 1;
                     utils.writeToFile({"fileName":
-                        editor,
+                        options.fileName,
                         "data": data},
-                        records.getEditorsDir(),
+                        options.directory,
                         callback
                     );
                 }
                 else{
-                    console.error("Error returned with " + editorUrl +
+                    console.error("Error returned with " + itemUrl +
                                   " : error = " + data.error);
                     callback(false);
                 }
             },
             error: function(jqXHR, status, error){
-                utils.inform('Editor Problem: ' + editor, 3000, error);
-                console.error("Error downloading editor: " + editorUrl +
+                utils.inform('Item Problem: ' + options.fileName, 3000, error);
+                console.error("Error downloading item: " + itemUrl +
                               " : status=" + status + " : " + error);
                 callback(false);
             },
@@ -91,7 +93,17 @@ return {
      * @param callback Function executed after sync is complete.
      */
     downloadEditors: function(callback) {
-        utils.inform("Sync editors ...");
+        this.downloadItems(records.getEditorsDir(),'editors', function(success){
+            callback(success);
+        });
+    },
+
+    /**
+     * Download editors from cloud provider.
+     * @param callback Function executed after sync is complete.
+     */
+    downloadItems: function(directory, dirName, callback) {
+        utils.inform("Sync "+dirName+" ...");
         var userId = login.getUser().id;
 
         var finished = function(success){
@@ -100,11 +112,11 @@ return {
             }
         };
 
-        records.deleteAllEditors($.proxy(function(){
-            var url = this.syncUtils.getCloudProviderUrl() + '/editors/dropbox/' +
+        utils.deleteAllFilesFromDir(directory, dirName, $.proxy(function(){
+            var url = this.syncUtils.getCloudProviderUrl() + '/'+dirName+'/dropbox/' +
                 userId +'/';
 
-            console.debug("Sync editors with " + url);
+            console.debug("Sync "+dirName+" with " + url);
 
             $.ajax({
                 type: "GET",
@@ -118,7 +130,7 @@ return {
                     }
                     else{
                         var count = 0;
-                        var noOfEditors = data.metadata.length;
+                        var noOfItems = data.metadata.length;
 
                         //utils.printObj(data.metadata);
 
@@ -127,9 +139,10 @@ return {
                             // TODO work would correct filename and path
                             var s = editor.lastIndexOf('/') + 1;
                             var fileName = editor.substr(s, editor.lastIndexOf('.'));
-                            this.downloadEditor(fileName, function(){
+                            var options = {"fileName": fileName, "dirName": dirName, "directory": directory};
+                            this.downloadItem(options, function(){
                                 ++count;
-                                if(count === noOfEditors){
+                                if(count === noOfItems){
                                     finished(true);
                                 }
                             });

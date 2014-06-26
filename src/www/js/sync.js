@@ -189,9 +189,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         $('.sync-login p').text('Logout');
 
         // show sync button
-        $('.sync-upload-button').show();
-        $('.sync-button').show();
-        $('.sync-download-button').show();
+        $('.sync-show').show();
     };
 
     /**
