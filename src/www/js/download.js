@@ -333,10 +333,12 @@ return {
 
                         var source = rootUrl + "/" + field.val;
                         var target = assetsDir.toInternalURL() + field.val;
-                        // hack alert - wavs are saved in the same dir as assets rather than in assets
+                        // hack alert - wavs are saved in the same dir (edina) as assets rather than in assets
                         // needs fixed in audio.js, but this will have to do for now.
+                        var audio = 'False'
                         if(record.editor === 'audio.edtr'){
-                            target = "cdvfile://localhost/persistent/" + field.val;
+                            target = "cdvfile://localhost/persistent/edina/" + field.val;
+                            audio = 'True'
                         }
                         console.debug("download: " + source + " to " + target);
                         new FileTransfer().download(
@@ -346,8 +348,12 @@ return {
                                 console.debug("download complete: " + entry.fullPath);
 
                                 // asset local path becomes new record field val
-                                // field.val = entry.fullPath;
-                                field.val = assetsDir.toURL() + entry.name;
+                                // Audio stored in same dir as assets, not in assets
+                                if(audio === 'True'){
+                                    field.val = target;
+                                }else{
+                                    field.val = assetsDir.toURL() + entry.name;
+                                }
 
                                 finished(record, true);
                             },
