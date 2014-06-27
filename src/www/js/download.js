@@ -48,44 +48,26 @@ return {
     },
 
     /**
-     * Download editor from dropbox.
-     * @param options.fileName the name of editor
-     * @param options.dirName the name of the directory on the server
-     * @param options.directory the local directory where the item will be downloaded.
+     * Download item from cloud provider.
+     * @param options.fileName the name of item
+     * @param options.remoteDir the name of the directory on the server
+     * @param options.localDir the local directory where the item will be downloaded.
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadItem: function(options, callback){
         var userId = login.getUser().id;
         var root = this.syncUtils.getCloudProviderUrl() + '/fs/dropbox/' + userId;
-        var itemUrl = root + "/"+ options.dirName +"/" + options.fileName;
+        var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
+        console.log("downloading "+itemUrl);
 
-        $.ajax({
-            type: "GET",
-            url: itemUrl,
-            success: function(data){
-                if(typeof(data.error) === 'undefined'){
-                    var s = options.fileName.lastIndexOf('/') + 1;
-                    utils.writeToFile({"fileName":
-                        options.fileName,
-                        "data": data},
-                        options.directory,
-                        callback
-                    );
-                }
-                else{
-                    console.error("Error returned with " + itemUrl +
-                                  " : error = " + data.error);
-                    callback(false);
-                }
-            },
-            error: function(jqXHR, status, error){
-                utils.inform('Item Problem: ' + options.fileName, 3000, error);
-                console.error("Error downloading item: " + itemUrl +
-                              " : status=" + status + " : " + error);
-                callback(false);
-            },
-            cache: false
+        var target = utils.getFilePath(options.localDir)+'/'+options.fileName
+
+        utils.fileTransfer(itemUrl, target, function(success){
+            if(success){
+                callback();
+            }
         });
+
     },
 
     /**
@@ -99,11 +81,13 @@ return {
     },
 
     /**
-     * Download editors from cloud provider.
+     * Download items from cloud provider.
+     * @param localDir the local directory where things are downloaded
+     * @param remoteDir the name of the remote directory
      * @param callback Function executed after sync is complete.
      */
-    downloadItems: function(directory, dirName, callback) {
-        utils.inform("Sync "+dirName+" ...");
+    downloadItems: function(localDir, remoteDir, callback) {
+        utils.inform("Sync "+remoteDir+" ...");
         var userId = login.getUser().id;
 
         var finished = function(success){
@@ -112,11 +96,11 @@ return {
             }
         };
 
-        utils.deleteAllFilesFromDir(directory, dirName, $.proxy(function(){
-            var url = this.syncUtils.getCloudProviderUrl() + '/'+dirName+'/dropbox/' +
+        utils.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
+            var url = this.syncUtils.getCloudProviderUrl() + '/'+remoteDir+'/dropbox/' +
                 userId +'/';
 
-            console.debug("Sync "+dirName+" with " + url);
+            console.debug("Sync "+remoteDir+" with " + url);
 
             $.ajax({
                 type: "GET",
@@ -135,11 +119,10 @@ return {
                         //utils.printObj(data.metadata);
 
                         // do sync
-                        $.each(data.metadata, $.proxy(function(i, editor){
+                        $.each(data.metadata, $.proxy(function(i, item){
                             // TODO work would correct filename and path
-                            var s = editor.lastIndexOf('/') + 1;
-                            var fileName = editor.substr(s, editor.lastIndexOf('.'));
-                            var options = {"fileName": fileName, "dirName": dirName, "directory": directory};
+                            var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
+                            var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir};
                             this.downloadItem(options, function(){
                                 ++count;
                                 if(count === noOfItems){
@@ -347,6 +330,7 @@ return {
 
                         console.debug("download: " + source + " to " + target);
 
+                        //TO-DO integrate this with the utils.fileTransfer function
                         new FileTransfer().download(
                             encodeURI(source),
                             target,
