@@ -60,7 +60,7 @@ return {
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
         console.log("downloading "+itemUrl);
 
-        var target = utils.getFilePath(options.localDir)+'/'+options.fileName
+        var target = utils.getFilePath(options.localDir)+'/'+options.fileName;
 
         utils.fileTransfer(itemUrl, target, function(success){
             if(success){
@@ -89,10 +89,11 @@ return {
     downloadItems: function(localDir, remoteDir, callback) {
         utils.inform("Sync "+remoteDir+" ...");
         var userId = login.getUser().id;
+        var downloads = [];
 
         var finished = function(success){
             if(callback){
-                callback(success);
+                callback(success, downloads);
             }
         };
 
@@ -125,6 +126,7 @@ return {
                             var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir};
                             this.downloadItem(options, function(){
                                 ++count;
+                                downloads.push(fileName);
                                 if(count === noOfItems){
                                     finished(true);
                                 }
