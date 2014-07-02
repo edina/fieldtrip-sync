@@ -34,8 +34,8 @@ DAMAGE.
 /**
  * Module deals with download records/forms from the Personal Cloud.
  */
-define(['records', 'map', 'utils', './login'],
-       function(records, map, utils, login){ // jshint ignore:line
+define(['records', 'map', 'file', 'utils', './login'],
+       function(records, map, file, utils, login){ // jshint ignore:line
 
 return {
 
@@ -60,9 +60,9 @@ return {
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
         console.log("downloading "+itemUrl);
 
-        var target = utils.getFilePath(options.localDir)+'/'+options.fileName;
+        var target = file.getFilePath(options.localDir)+'/'+options.fileName;
 
-        utils.fileTransfer(itemUrl, target, function(success){
+        file.fileTransfer(itemUrl, target, function(success){
             if(success){
                 callback();
             }
@@ -97,7 +97,7 @@ return {
             }
         };
 
-        utils.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
+        file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
             var url = this.syncUtils.getCloudProviderUrl() + '/'+remoteDir+'/dropbox/' +
                 userId +'/';
 
@@ -327,20 +327,20 @@ return {
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
-                        var target = utils.getFilePath(records.getAssetsDir()) + "/" +
+                        var target = file.getFilePath(records.getAssetsDir()) + "/" +
                             name + "/" + field.val;
 
                         console.debug("download: " + source + " to " + target);
 
-                        //TO-DO integrate this with the utils.fileTransfer function
+                        //TO-DO integrate this with the file.fileTransfer function
                         new FileTransfer().download(
                             encodeURI(source),
                             target,
                             function(entry) {
-                                console.debug("download complete: " + utils.getFilePath(entry));
+                                console.debug("download complete: " + file.getFilePath(entry));
 
                                 // asset local path becomes new record field val
-                                field.val = utils.getFilePath(entry);
+                                field.val = file.getFilePath(entry);
 
                                 finished(record, true);
                             },
@@ -349,7 +349,7 @@ return {
                                 utils.informError("Problem syncing " + name);
                                 console.error("Problem downloading asset: " + error.source +
                                               " to: " + error.target +
-                                              " error: " + utils.getFileTransferErrorMsg(error) +
+                                              " error: " + file.getFileTransferErrorMsg(error) +
                                               "http status: " + error.http_status);// jshint ignore:line
                                 finished(record, false);
                             }
