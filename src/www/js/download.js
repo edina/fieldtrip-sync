@@ -52,6 +52,8 @@ return {
      * @param options.fileName the name of item
      * @param options.remoteDir the name of the directory on the server
      * @param options.localDir the local directory where the item will be downloaded.
+     * @param options.localFileName is the local filename, use it when you want the
+     * downloaded item to have different name from the remote one
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadItem: function(options, callback){
@@ -60,7 +62,13 @@ return {
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
         console.log("downloading "+itemUrl);
 
-        var target = file.getFilePath(options.localDir)+'/'+options.fileName;
+        var target;
+        if(options.localFileName){
+            target = file.getFilePath(options.localDir)+'/'+options.localFileName;
+        }
+        else{
+            target = file.getFilePath(options.localDir)+'/'+options.fileName;
+        }
 
         file.fileTransfer(itemUrl, target, function(success){
             if(success){
