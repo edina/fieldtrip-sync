@@ -37,6 +37,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     records, map, settings, utils, config, pcapi, login, upload, download){
 
     // some common sync utilities
+    var provider;
     var syncUtils = {
         /**
          * @return The URL to the cloud provider.
@@ -488,7 +489,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
 
     $(document).off('vclick', '.choose-provider');
     $(document).on('vclick', '.choose-provider', function(event){
-        var provider = $(event.currentTarget).text();
+        provider = $(event.currentTarget).text();
         login.loginCloud(provider, function(userId){
             if(userId){
                 showSyncButtons();

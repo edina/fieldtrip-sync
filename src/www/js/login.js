@@ -69,83 +69,105 @@ define(['utils'], function(utils){
      */
     var doLogin = function(provider, callback, cbrowser){
         var loginUrl = _this.syncUtils.getCloudProviderUrl() + '/auth/'+provider;
+        if (provider === 'local') {
+            $('#home-login-local-popup').popup('open');
+            $(document).off('vmousedown', '#local-login');
+            $(document).on('vmousedown', '#local-login', function(event){
+                loginUrl += '/' + $("#local-login").val();
+                console.debug('Login with: ' + loginUrl + '?async=true');
 
-        var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
-
-        var userId = getCloudLoginId();
-        if(userId !== undefined){
-            console.debug("got a user id: " + userId);
-            loginUrl += '/' + userId;
+                $.ajax({
+                    url: loginUrl + '?async=true',
+                    timeout: 3000,
+                    cache: false,
+                    success: function(data){
+                        console.debug("Redirect to: " + data.url);
+                        var cloudUserId = data.userid;
+                        _this.setCloudLogin(cloudUserId);
+                        callback(cloudUserId);
+                    }
+                });
+            });
         }
+        else{
 
-        // clear user id
-        clearCloudLogin();
-        console.debug('Login with: ' + loginUrl + '?async=true');
+            var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
 
-        $.ajax({
-            url: loginUrl + '?async=true',
-            timeout: 3000,
-            cache: false,
-            success: function(data){
-                console.debug("Redirect to: " + data.url);
-                var cloudUserId = data.userid;
-
-                // close child browser
-                var closeCb = function(userId){
-                    clearInterval(pollTimer);
-                    callback(userId);
-                };
-
-                // open dropbox login in child browser
-                var cb = window.open(data.url, '_blank', 'location=no');
-                //cb.addEventListener('exit', closeCb);
-
-                var pollUrl = loginUrl + '/' + cloudUserId + '?async=true';
-                console.debug('Poll: ' + pollUrl);
-                pollTimer = setInterval(function(){
-                    $.ajax({
-                        url: pollUrl,
-                        success: function(pollData){
-                            pollTimerCount += pollInterval;
-
-                            if(pollData.state === 1 || pollTimerCount > pollForMax){
-                                if(pollData.state === 1 ){
-                                    _this.setCloudLogin(cloudUserId);
-                                }
-                                cb.close();
-                                closeCb(cloudUserId);
-                            }
-                        },
-                        error: function(error){
-                            console.error("Problem polling api: " + error.statusText);
-                            closeCb(-1);
-                        },
-                        cache: false
-                    });
-                }, pollInterval);
-
-                if(cbrowser){
-                    // caller may want access to child browser reference
-                    cbrowser(cb);
-                }
-            },
-            error: function(jqXHR, textStatus){
-                var msg;
-                if(textStatus === undefined){
-                    textStatus = ' Unspecified Error.';
-                }
-                else if(textStatus === "timeout") {
-                    msg = "Unable to login, please enable data connection.";
-                }
-                else{
-                    msg = "Problem with login: " + textStatus;
-                }
-
-                utils.printObj(jqXHR);
-                console.error(msg);
-                utils.inform(msg);
+            var userId = getCloudLoginId();
+            if(userId !== undefined){
+                console.debug("got a user id: " + userId);
+                loginUrl += '/' + userId;
             }
-        });
+
+            // clear user id
+            clearCloudLogin();
+            console.debug('Login with: ' + loginUrl + '?async=true');
+
+            $.ajax({
+                url: loginUrl + '?async=true',
+                timeout: 3000,
+                cache: false,
+                success: function(data){
+                    console.debug("Redirect to: " + data.url);
+                    var cloudUserId = data.userid;
+
+                    // close child browser
+                    var closeCb = function(userId){
+                        clearInterval(pollTimer);
+                        callback(userId);
+                    };
+
+                    // open dropbox login in child browser
+                    var cb = window.open(data.url, '_blank', 'location=no');
+                    //cb.addEventListener('exit', closeCb);
+
+                    var pollUrl = loginUrl + '/' + cloudUserId + '?async=true';
+                    console.debug('Poll: ' + pollUrl);
+                    pollTimer = setInterval(function(){
+                        $.ajax({
+                            url: pollUrl,
+                            success: function(pollData){
+                                pollTimerCount += pollInterval;
+
+                                if(pollData.state === 1 || pollTimerCount > pollForMax){
+                                    if(pollData.state === 1 ){
+                                        _this.setCloudLogin(cloudUserId);
+                                    }
+                                    cb.close();
+                                    closeCb(cloudUserId);
+                                }
+                            },
+                            error: function(error){
+                                console.error("Problem polling api: " + error.statusText);
+                                closeCb(-1);
+                            },
+                            cache: false
+                        });
+                    }, pollInterval);
+
+                    if(cbrowser){
+                        // caller may want access to child browser reference
+                        cbrowser(cb);
+                    }
+                },
+                error: function(jqXHR, textStatus){
+                    var msg;
+                    if(textStatus === undefined){
+                        textStatus = ' Unspecified Error.';
+                    }
+                    else if(textStatus === "timeout") {
+                        msg = "Unable to login, please enable data connection.";
+                    }
+                    else{
+                        msg = "Problem with login: " + textStatus;
+                    }
+
+                    utils.printObj(jqXHR);
+                    console.error(msg);
+                    utils.inform(msg);
+                }
+            });
+        }
     };
 
 var _this = {
