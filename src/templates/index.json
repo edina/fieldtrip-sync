@@ -3,6 +3,12 @@
         "popup4":{
             "template": "home-sync-popup.html",
             "data": {}
+        },
+        "popup5":{
+            "template": "home-login-sync-popup.html",
+            "data": {
+                "title": "Providers"
+            }
         }
     }
 }

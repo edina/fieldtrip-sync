@@ -33,8 +33,8 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, utils, config, login, upload, download){
+define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
+    records, map, settings, utils, config, pcapi, login, upload, download){
 
     // some common sync utilities
     var syncUtils = {
@@ -439,6 +439,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         }
     }
     syncUtils.setCloudProviderUrl(root);
+    pcapi.init({"url": root, "version": config.pcapiversion});
 
 
     login.init(syncUtils);
@@ -465,16 +466,35 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         icon = icon.substr(icon.lastIndexOf('/') + 1);
 
         if(icon === 'login-large.png'){
-            login.loginCloud(function(userId){
-                if(userId){
-                    showSyncButtons();
+            var $loginPopup = $('#home-login-sync-popup');
+            pcapi.getProviders(function(success, data){
+                if(success){
+                    var providers = [];
+                    for(var provider in data){
+                        providers.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                    }
+                    $("#list-providers").html(providers.join(""));
+                    $("#list-providers").listview('refresh');
+                    $loginPopup.popup('open');
                 }
+                
             });
         }
         else {
             login.logoutCloud();
             hideSyncButtons();
         }
+    });
+
+    $(document).off('vclick', '.choose-provider');
+    $(document).on('vclick', '.choose-provider', function(event){
+        var provider = $(event.currentTarget).text();
+        login.loginCloud(provider, function(userId){
+            if(userId){
+                showSyncButtons();
+                $('#home-login-sync-popup').popup('close');
+            }
+        });
     });
 
     $(document).on(

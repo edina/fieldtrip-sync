@@ -67,8 +67,8 @@ define(['utils'], function(utils){
      * @param callback Function called after login attemt.
      * @param cbrowser Function to allow caller requires access to childbrowser.
      */
-    var doLogin = function(callback, cbrowser){
-        var loginUrl = _this.syncUtils.getCloudProviderUrl() + '/auth/dropbox';
+    var doLogin = function(provider, callback, cbrowser){
+        var loginUrl = _this.syncUtils.getCloudProviderUrl() + '/auth/'+provider;
 
         var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
 
@@ -208,8 +208,8 @@ var _this = {
     /**
      * Login to cloud provider.
      */
-    loginCloud: function(cb, cbrowser){
-        doLogin(cb, cbrowser);
+    loginCloud: function(provider, cb, cbrowser){
+        doLogin(provider, cb, cbrowser);
     },
 
     /**
