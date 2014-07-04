@@ -69,7 +69,12 @@ define([], function(){
                 dataType: "json",
                 url: url,
                 success: function(data){
-                    callback(true, data);
+                    if(data.error == 1){
+                        callback(false);
+                    }
+                    else{
+                        callback(true, data);
+                    }
                 },
                 error: function(jqXHR, status, error){
                     console.error("Problem with " + url + " : status=" +
@@ -103,7 +108,7 @@ define([], function(){
          *
          */
         getProvider: function(){
-            return this.provider;
+            return localStorage.getItem('cloud-provider');
         },
 
         getUserId: function(){

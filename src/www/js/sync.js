@@ -33,10 +33,11 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, utils, config, login, upload, download){
+define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
+    records, map, settings, utils, config, pcapi, login, upload, download){
 
     // some common sync utilities
+    var provider;
     var syncUtils = {
         /**
          * @return The URL to the cloud provider.
@@ -284,7 +285,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
     var syncStoreCursor = function(){
         var userId = login.getUser().id;
         //var user = this.db.getCloudLogin();
-        var url = syncUtils.cloudProviderUrl + '/sync/dropbox/' + userId;
+        var url = syncUtils.cloudProviderUrl + '/sync/'+pcapi.getProvider()+'/' + userId;
         $.ajax({
             type: "GET",
             dataType: "json",
@@ -338,7 +339,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         };
 
         // sync records
-        var url = syncUtils.cloudProviderUrl + '/sync/dropbox/' +
+        var url = syncUtils.cloudProviderUrl + '/sync/'+pcapi.getProvider()+'/' +
             user.id + "/" + user.cursor;
         console.debug("Sync download with cursor: " + url);
 
@@ -439,6 +440,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         }
     }
     syncUtils.setCloudProviderUrl(root);
+    pcapi.init({"url": root, "version": config.pcapiversion});
 
 
     login.init(syncUtils);
@@ -465,16 +467,44 @@ define(['records', 'map', 'settings', 'utils', 'config', './login', './upload', 
         icon = icon.substr(icon.lastIndexOf('/') + 1);
 
         if(icon === 'login-large.png'){
-            login.loginCloud(function(userId){
-                if(userId){
-                    showSyncButtons();
+            var $loginPopup = $('#home-login-sync-popup');
+            pcapi.getProviders(function(success, data){
+                if(success){
+                    var providers = [];
+                    for(var provider in data){
+                        if(provider == 'local'){
+                            providers.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
+                            providers.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
+                            providers.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
+                            providers.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
+                        }
+                        else{
+                            providers.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                        }
+                    }
+                    $("#list-providers").html(providers.join(""));
+                    $("#list-providers").listview('refresh');
+                    $loginPopup.popup('open');
                 }
+                
             });
         }
         else {
             login.logoutCloud();
             hideSyncButtons();
         }
+    });
+
+    $(document).off('vclick', '.choose-provider');
+    $(document).on('vclick', '.choose-provider', function(event){
+        provider = $(event.currentTarget).text();
+        localStorage.setItem('cloud-provider', provider);
+        login.loginCloud(provider, function(userId){
+            if(userId){
+                showSyncButtons();
+                $('#home-login-sync-popup').popup('close');
+            }
+        });
     });
 
     $(document).on(
