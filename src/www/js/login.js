@@ -34,7 +34,7 @@ DAMAGE.
 /**
  * TODO
  */
-define(['utils'], function(utils){
+define(['utils', './pcapi'], function(utils, pcapi){
     /**
      * Get the cloud login from local storage.
      */
@@ -188,7 +188,7 @@ var _this = {
         if(!this.userId){
             var user = getCloudLogin();
             if(user !== null && user.id){
-                var url = this.syncUtils.getCloudProviderUrl() + '/auth/dropbox/' + user.id;
+                var url = this.syncUtils.getCloudProviderUrl() + '/auth/'+pcapi.getProvider()+'/' + user.id;
                 console.debug("Check user with: " + url);
                 $.ajax({
                     type: 'GET',
