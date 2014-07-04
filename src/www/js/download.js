@@ -34,8 +34,8 @@ DAMAGE.
 /**
  * Module deals with download records/forms from the Personal Cloud.
  */
-define(['records', 'map', 'file', 'utils', './login'],
-       function(records, map, file, utils, login){ // jshint ignore:line
+define(['records', 'map', 'file', 'utils', './pcapi', './login'],
+       function(records, map, file, utils, pcapi, login){ // jshint ignore:line
 
 return {
 
@@ -45,6 +45,44 @@ return {
      */
     init: function(syncUtils){
         this.syncUtils = syncUtils;
+    },
+
+    /**
+     * Download editor from cloud.
+     * @param editor The editor name.
+     * @param callback Function will be called when editor is successfully downloaded.
+     */
+    downloadEditor: function(editor, callback){
+        var userId = login.getUser().id;
+        var root = this.syncUtils.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
+        var editorUrl = root + "/editors/" + editor;
+
+        $.ajax({
+            type: "GET",
+            url: editorUrl,
+            success: function(data){
+                if(typeof(data.error) === 'undefined'){
+                    var s = editor.lastIndexOf('/') + 1;
+                    file.writeToFile({"fileName":
+                        editor,
+                        "data": data},
+                        records.getEditorsDir(),
+                        callback
+                    );
+                }
+                else{
+                    console.error("Error returned with " + editorUrl +
+                                    " : error = " + data.error);
+                    callback(false);
+                }
+            },
+            error: function(jqXHR, status, error){
+                utils.inform('Editor Problem: ' + editor, 3000, error);
+                console.error("Error downloading editor: " + editorUrl +
+                                " : status=" + status + " : " + error);
+                callback(false);
+            },
+        });
     },
 
     /**
@@ -58,7 +96,8 @@ return {
      */
     downloadItem: function(options, callback){
         var userId = login.getUser().id;
-        var root = this.syncUtils.getCloudProviderUrl() + '/fs/dropbox/' + userId;
+        //TODO maybe think of a cleverer way of getting the provider
+        var root = this.syncUtils.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
         console.log("downloading "+itemUrl);
 
@@ -106,7 +145,7 @@ return {
         };
 
         file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
-            var url = this.syncUtils.getCloudProviderUrl() + '/'+remoteDir+'/dropbox/' +
+            var url = this.syncUtils.getCloudProviderUrl() + '/'+remoteDir+'/'+pcapi.getProvider()+'/' +
                 userId +'/';
 
             console.debug("Sync "+remoteDir+" with " + url);
@@ -179,7 +218,7 @@ return {
         });
 
         var recordsDir = this.syncUtils.getCloudProviderUrl() +
-            '/records/dropbox/' + userId + "/";
+            '/records/'+pcapi.getProvider()+'/' + userId + "/";
         var downloadQueue = [];
         var count = 0;
 
@@ -268,7 +307,7 @@ return {
      * downloaded.
      */
     downloadRecord: function(name, callback, orgRecord){
-        var rootUrl = this.syncUtils.getCloudProviderUrl() + '/records/dropbox/' +
+        var rootUrl = this.syncUtils.getCloudProviderUrl() + '/records/'+pcapi.getProvider()+'/' +
             login.getUser().id + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 

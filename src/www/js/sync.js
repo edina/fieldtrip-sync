@@ -285,7 +285,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     var syncStoreCursor = function(){
         var userId = login.getUser().id;
         //var user = this.db.getCloudLogin();
-        var url = syncUtils.cloudProviderUrl + '/sync/dropbox/' + userId;
+        var url = syncUtils.cloudProviderUrl + '/sync/'+pcapi.getProvider()+'/' + userId;
         $.ajax({
             type: "GET",
             dataType: "json",
@@ -339,7 +339,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         };
 
         // sync records
-        var url = syncUtils.cloudProviderUrl + '/sync/dropbox/' +
+        var url = syncUtils.cloudProviderUrl + '/sync/'+pcapi.getProvider()+'/' +
             user.id + "/" + user.cursor;
         console.debug("Sync download with cursor: " + url);
 
@@ -472,7 +472,15 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                 if(success){
                     var providers = [];
                     for(var provider in data){
-                        providers.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                        if(provider == 'local'){
+                            providers.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
+                            providers.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
+                            providers.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
+                            providers.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
+                        }
+                        else{
+                            providers.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                        }
                     }
                     $("#list-providers").html(providers.join(""));
                     $("#list-providers").listview('refresh');
@@ -490,6 +498,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     $(document).off('vclick', '.choose-provider');
     $(document).on('vclick', '.choose-provider', function(event){
         provider = $(event.currentTarget).text();
+        localStorage.setItem('cloud-provider', provider);
         login.loginCloud(provider, function(userId){
             if(userId){
                 showSyncButtons();

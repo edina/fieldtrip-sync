@@ -70,10 +70,10 @@ define(['utils'], function(utils){
     var doLogin = function(provider, callback, cbrowser){
         var loginUrl = _this.syncUtils.getCloudProviderUrl() + '/auth/'+provider;
         if (provider === 'local') {
-            $('#home-login-local-popup').popup('open');
+            $('#login-form').toggle();
             $(document).off('vmousedown', '#local-login');
             $(document).on('vmousedown', '#local-login', function(event){
-                loginUrl += '/' + $("#local-login").val();
+                loginUrl += '/' + $("#login-username").val();
                 console.debug('Login with: ' + loginUrl + '?async=true');
 
                 $.ajax({

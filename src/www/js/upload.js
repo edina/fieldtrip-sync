@@ -31,10 +31,12 @@ DAMAGE.
 
 "use strict";
 
+/* global FileUploadOptions */
+
 /**
  * Module deals with uploading records to Personal Cloud.
  */
-define(['records', 'map', 'utils', './login'], function(records, map, utils, login){
+define(['records', 'map', 'utils', './pcapi', './login'], function(records, map, utils, pcapi, login){
 
     /**
      * Create remote record.
@@ -49,7 +51,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
         var dropboxRecord = jQuery.extend(true, {}, record);
 
         // create record URL
-        var recordDir = cloudProviderUrl + '/records/dropbox/' +
+        var recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
             userId + '/' + record.name;
 
         if(dropboxRecord.point !== undefined){
@@ -78,7 +80,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
                         callback(success);
                     }, delay);
                 }
-            }
+            };
 
             console.debug("Post: " + recordDir);
 
@@ -100,7 +102,7 @@ define(['records', 'map', 'utils', './login'], function(records, map, utils, log
                         $('#' + id + ' h3').text(name);
 
                         // update URL
-                        recordDir = cloudProviderUrl + '/records/dropbox/' +
+                        recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
                             userId + '/' + record.name;
                     }
 
@@ -221,7 +223,7 @@ var _this = {
             utils.inform('Nothing to upload');
         }
     },
-}
+};
 
 return _this;
 

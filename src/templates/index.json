@@ -9,12 +9,6 @@
             "data": {
                 "title": "Providers"
             }
-        },
-        "popup6":{
-            "template": "home-login-local-popup.html",
-            "data": {
-                "title": "Login"
-            }
         }
     }
 }
