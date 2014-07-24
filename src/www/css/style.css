@@ -1,8 +1,22 @@
+/* sync state icon */
 #saved-records-list .ui-block-a{
-    margin: 0;
-    padding: 0;
-    width: 15%;
-    height: 3.4em;
+    width: 15% !important;
+    height: 3.4em !important;
+}
+
+/* record text */
+#saved-records-list .ui-block-b{
+    width: 65% !important;
+}
+
+#saved-records-list .ui-block-b a{
+    font-size: 16px;
+    font-weight: 900;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    text-decoration: none;
 }
 
 .saved-records-list-synced-true{
