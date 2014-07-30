@@ -38,6 +38,8 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
 
     // some common sync utilities
     var provider;
+
+    // TODO: Panos will remove this class
     var syncUtils = {
         /**
          * @return The URL to the cloud provider.
@@ -90,14 +92,14 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
      * Hide sync related buttons.
      */
     var hideSyncButtons = function(){
-        $('.sync-button').hide();
-        $('.sync-upload-button').hide();
-
         // Bug 5997 have to use full url due to jqm issue
         $('.sync-login img').attr(
             'src',
             utils.getDocumentBase() + 'plugins/sync/css/images/login-large.png');
         $('.sync-login p').text('Login');
+
+        // hide sync buttons
+        $('.sync-show').hide();
     };
 
     /**
@@ -121,7 +123,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         /**
          * Show upload and sync button on records page header
          */
-        var showSyncButtons = function(){
+        var showRecordsSyncButtons = function(){
             $('#saved-records-page-header-login-sync').removeClass(
                 'cloud-login');
             $('#saved-records-page-header-login-sync').addClass(
@@ -129,7 +131,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
             $('#saved-records-page-header-upload').show();
         };
 
-        var hideSyncButtons = function(){
+        var hideRecordsSyncButtons = function(){
             $('#saved-records-page-header-login-sync').addClass('cloud-login');
             $('#saved-records-page-header-upload').hide();
         };
@@ -161,7 +163,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                 else{
                     login.loginCloud(function(userId){
                         if(userId){
-                            showSyncButtons();
+                            showRecordsSyncButtons();
                         }
                     });
                 }
@@ -171,11 +173,11 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         if(login.getUser()){
             // $('#saved-records-page-header-login-sync').addClass('cloud-sync');
             // $('#saved-records-page-header-upload').show();
-            showSyncButtons();
+            showRecordsSyncButtons();
         }
         else{
             //$('#saved-records-page-header-login-sync').addClass('cloud-login');
-            hideSyncButtons();
+            hideRecordsSyncButtons();
         }
     };
 
@@ -189,7 +191,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
             utils.getDocumentBase() + 'plugins/sync/css/images/logout.png');
         $('.sync-login p').text('Logout');
 
-        // show sync button
+        // show sync buttons
         $('.sync-show').show();
     };
 
@@ -486,7 +488,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                     $("#list-providers").listview('refresh');
                     $loginPopup.popup('open');
                 }
-                
+
             });
         }
         else {
@@ -495,7 +497,6 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         }
     });
 
-    $(document).off('vclick', '.choose-provider');
     $(document).on('vclick', '.choose-provider', function(event){
         provider = $(event.currentTarget).text();
         localStorage.setItem('cloud-provider', provider);

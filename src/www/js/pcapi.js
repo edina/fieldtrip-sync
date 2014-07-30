@@ -35,7 +35,7 @@ DAMAGE.
  * interface for the PCAPI
  */
 define([], function(){
-    
+
     return {
         /**
          * Initialize pcapi object
@@ -105,25 +105,28 @@ define([], function(){
         },
 
         /**
-         *
+         * TODO
          */
         getProvider: function(){
             return localStorage.getItem('cloud-provider');
         },
 
+        /**
+         * TODO
+         */
         getUserId: function(){
             return this.userId;
         },
 
         /**
-         *
+         * TODO
          */
         setProvider: function(provider){
             this.provider = provider;
         },
 
         /**
-         *
+         * TODO
          */
         setUserId: function(userId){
             this.userId = userId;
