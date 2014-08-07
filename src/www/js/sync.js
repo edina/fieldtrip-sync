@@ -456,13 +456,13 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     });
 
     // listen on home page
-    $(document).on('pageshow', '#home-page', checkLogin);
+    $(document).on('pagecontainershow', '#home-page', checkLogin);
 
     // listen on saved records page
-    $(document).on('pageshow', '#saved-records-page', recordsPage);
+    $(document).on('pagecontainershow', '#saved-records-page', recordsPage);
 
     // listen on any page with class sync-page
-    $(document).on('pageshow', '.sync-page', checkLogin);
+    $(document).on('pagecontainershow', '.sync-page', checkLogin);
 
     $(document).on('vclick', '#home-content-login', function(){
         var icon = $('#home-content-login img').attr('src');
@@ -545,7 +545,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         }
     );
 
-    $(document).on('change', '#settings-pcapi-url', function(){
+    $('body').pagecontainer('change', '#settings-pcapi-url', function(){
         syncUtils.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });
