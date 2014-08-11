@@ -235,7 +235,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                     upload.uploadRecords(function(){
                         syncStoreCursor();
                         map.refreshRecords();
-                        $.mobile.hidePageLoadingMsg();
+                        $.mobile.loading('hide');
 
                         if(options.complete){
                             options.complete();
@@ -251,7 +251,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                             download.downloadRecords(doUpload, options.callback);
                         }
                         else{
-                            $.mobile.hidePageLoadingMsg();
+                            $.mobile.loading('hide');
                             utils.inform("Problem syncing editors.");
                         }
                     });
@@ -264,7 +264,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                                 doUpload();
                             }
                             else{
-                                $.mobile.hidePageLoadingMsg();
+                                $.mobile.loading('hide');
                                 utils.inform("Problem syncing with cursor.");
                             }
                         },
@@ -456,13 +456,13 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     });
 
     // listen on home page
-    $(document).on('pageshow', '#home-page', checkLogin);
+    $(document).on('_pageshow', '#home-page', checkLogin);
 
     // listen on saved records page
-    $(document).on('pageshow', '#saved-records-page', recordsPage);
+    $(document).on('_pageshow', '#saved-records-page', recordsPage);
 
     // listen on any page with class sync-page
-    $(document).on('pageshow', '.sync-page', checkLogin);
+    $(document).on('_pageshow', '.sync-page', checkLogin);
 
     $(document).on('vclick', '#home-content-login', function(){
         var icon = $('#home-content-login img').attr('src');
@@ -515,7 +515,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
             event.preventDefault();
             utils.showPageLoadingMsg('Upload Records ...');
             upload.uploadRecords(function(){
-                $.mobile.hidePageLoadingMsg();
+                $.mobile.loading('hide');
                 $.mobile.changePage("saved-records.html");
             });
         }
@@ -526,7 +526,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         function(){
             utils.showPageLoadingMsg('Download Editors ...');
             download.downloadEditors(function(){
-                $.mobile.hidePageLoadingMsg();
+                $.mobile.loading('hide');
                 $.mobile.changePage('capture.html');
             });
         }

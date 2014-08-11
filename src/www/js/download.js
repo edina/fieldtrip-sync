@@ -257,7 +257,7 @@ return {
             url: recordsDir,
             success: function(data){
                 if(data.error === 0){
-                    $.mobile.showPageLoadingMsg();
+                    $.mobile.loading('show');
                     $.each(data.records, function(i, record){
                         // the first property of each object is the name
                         for(var name in record){
@@ -283,7 +283,7 @@ return {
                     // TODO the user should be informed of a failure
                     // (when https://redmine.edina.ac.uk/issues/5812 is resolved)
                     console.error("Error with fetching records:" + data.msg);
-                    $.mobile.hidePageLoadingMsg();
+                    $.mobile.loading('hide');
                     utils.inform("Sync Error " + data.msg, 5000);
 
                     complete();
