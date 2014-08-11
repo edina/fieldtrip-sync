@@ -171,12 +171,9 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         );
 
         if(login.getUser()){
-            // $('#saved-records-page-header-login-sync').addClass('cloud-sync');
-            // $('#saved-records-page-header-upload').show();
             showRecordsSyncButtons();
         }
         else{
-            //$('#saved-records-page-header-login-sync').addClass('cloud-login');
             hideRecordsSyncButtons();
         }
     };
