@@ -39,7 +39,13 @@ define(['utils', './pcapi'], function(utils, pcapi){
      * Get the cloud login from local storage.
      */
     var getCloudLogin = function(){
-        return JSON.parse(localStorage.getItem('cloud-user'));
+        var login = null;
+        var user = localStorage.getItem('cloud-user');
+        if(user){
+            login = JSON.parse(user);
+        }
+
+        return login;
     };
 
     /**
