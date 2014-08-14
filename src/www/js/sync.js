@@ -452,6 +452,16 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         }
     });
 
+    var selectProvider = function(provider){
+        localStorage.setItem('cloud-provider', provider);
+        login.loginCloud(provider, function(userId){
+            if(userId){
+                showSyncButtons();
+                $('#home-login-sync-popup').popup('close');
+            }
+        });
+    };
+
     // listen on home page
     $(document).on('_pageshow', '#home-page', checkLogin);
 
@@ -470,22 +480,38 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
             pcapi.getProviders(function(success, data){
                 if(success){
                     var providers = [];
-                    for(var provider in data){
-                        if(provider == 'local'){
-                            providers.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
-                            providers.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
-                            providers.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
-                            providers.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
-                        }
-                        else{
-                            providers.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                    for(var key in data){
+                        // Just add selected providers from the app configuration
+                        // or all if none was specified
+                        if(config.pcapiProviders === undefined ||
+                           config.pcapiProviders.indexOf(key) > -1){
+                            providers.push(key);
                         }
                     }
-                    $("#list-providers").html(providers.join(""));
-                    $("#list-providers").listview('refresh');
-                    $loginPopup.popup('open');
-                }
 
+                    // If there is only one non-'local' provider login with that one
+                    if(providers.length == 1 && providers[0] != 'local'){
+                        selectProvider(providers[0]);
+                    }
+                    else{
+                        var html = [];
+                        for(var i=0; i<providers.length; i++){
+                            var provider = providers[i];
+                            if(provider == 'local'){
+                                html.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
+                                html.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
+                                html.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
+                                html.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
+                            }
+                            else{
+                                html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                            }
+                        }
+                        $("#list-providers").html(html.join(""));
+                        $("#list-providers").listview('refresh');
+                        $loginPopup.popup('open');
+                    }
+                }
             });
         }
         else {
@@ -496,13 +522,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
 
     $(document).on('vclick', '.choose-provider', function(event){
         provider = $(event.currentTarget).text();
-        localStorage.setItem('cloud-provider', provider);
-        login.loginCloud(provider, function(userId){
-            if(userId){
-                showSyncButtons();
-                $('#home-login-sync-popup').popup('close');
-            }
-        });
+        selectProvider(provider);
     });
 
     $(document).on(
