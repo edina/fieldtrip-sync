@@ -36,46 +36,6 @@ DAMAGE.
 define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
     records, map, settings, utils, config, pcapi, login, upload, download){
 
-    // some common sync utilities
-    var provider;
-
-    // TODO: Panos will remove this class
-    var syncUtils = {
-        /**
-         * @return The URL to the cloud provider.
-         */
-        getCloudProviderUrl: function() {
-            return this.cloudProviderUrl;
-        },
-
-        /**
-         * Does this field define an asset?
-         * @param field Annotation record field.
-         * @param type Optional record type. If undefined it will be determied by the id.
-         */
-        isAsset: function(field, type) {
-            var isAsset = false;
-
-            if(type === undefined){
-                type = records.typeFromId(field.id);
-            }
-
-            if(type === 'image' || type === 'audio' || type === 'track'){
-                isAsset = true;
-            }
-
-            return isAsset;
-        },
-
-        /**
-         * Set the cloud provider URL.
-         * @param root The Server URL root.
-         */
-        setCloudProviderUrl: function(root) {
-            this.cloudProviderUrl = root + "/" + config.pcapiversion + "/pcapi";
-        }
-    };
-
     /**
      * Set up buttons according to whether user if logged in.
      */
@@ -86,6 +46,35 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         else{
             hideSyncButtons();
         }
+    };
+
+    /*
+     * Get the list of providera available for the app
+     * @param onsuccess a success callback where to pass the list of providers
+     * @param onerror an error callback
+     */
+    var getProviders = function(onsuccess, onerror){
+        pcapi.getProviders(function(success, data){
+            if(success){
+                var providers = [];
+                for(var key in data){
+                    // Just add selected providers from the app configuration
+                    // or all if none was specified
+                    if(config.pcapiProviders === undefined ||
+                       config.pcapiProviders.indexOf(key) > -1){
+                        providers.push(key);
+                    }
+                }
+                if(typeof onsuccess === 'function'){
+                    onsuccess(providers);
+                }
+            }
+            else{
+                if(typeof onerror === 'function'){
+                    onerror();
+                }
+            }
+        });
     };
 
     /**
@@ -176,6 +165,20 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         else{
             hideRecordsSyncButtons();
         }
+    };
+
+    /**
+     * Login with chosed provider.
+     * @param provider
+     */
+    var selectProvider = function(provider){
+        pcapi.setProvider(provider);
+        login.loginCloud(provider, function(userId){
+            if(userId){
+                showSyncButtons();
+                $('#home-login-sync-popup').popup('close');
+            }
+        });
     };
 
     /**
@@ -283,8 +286,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
      */
     var syncStoreCursor = function(){
         var userId = login.getUser().id;
-        //var user = this.db.getCloudLogin();
-        var url = syncUtils.cloudProviderUrl + '/sync/'+pcapi.getProvider()+'/' + userId;
+        var url = pcapi.getCloudProviderUrl() + '/sync/'+pcapi.getProvider()+'/' + userId;
         $.ajax({
             type: "GET",
             dataType: "json",
@@ -338,7 +340,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         };
 
         // sync records
-        var url = syncUtils.cloudProviderUrl + '/sync/'+pcapi.getProvider()+'/' +
+        var url = pcapi.getCloudProviderUrl() + '/sync/'+pcapi.getProvider()+'/' +
             user.id + "/" + user.cursor;
         console.debug("Sync download with cursor: " + url);
 
@@ -438,58 +440,13 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
             root += ':' + location.port;
         }
     }
-    syncUtils.setCloudProviderUrl(root);
     pcapi.init({"url": root, "version": config.pcapiversion});
-
-
-    login.init(syncUtils);
-    upload.init(syncUtils);
-    download.init(syncUtils);
 
     login.checkLogin(function(userId){
         if(userId){
             showSyncButtons();
         }
     });
-
-    /*
-     * Get the list of providera available for the app
-     * @param onsuccess a success callback where to pass the list of providers
-     * @param onerror an error callback
-     */
-    var getProviders = function(onsuccess, onerror){
-        pcapi.getProviders(function(success, data){
-            if(success){
-                var providers = [];
-                for(var key in data){
-                    // Just add selected providers from the app configuration
-                    // or all if none was specified
-                    if(config.pcapiProviders === undefined ||
-                       config.pcapiProviders.indexOf(key) > -1){
-                        providers.push(key);
-                    }
-                }
-                if(typeof onsuccess === 'function'){
-                    onsuccess(providers);
-                }
-            }
-            else{
-                if(typeof onerror === 'function'){
-                    onerror();
-                }
-            }
-        });
-    };
-
-    var selectProvider = function(provider){
-        localStorage.setItem('cloud-provider', provider);
-        login.loginCloud(provider, function(userId){
-            if(userId){
-                showSyncButtons();
-                $('#home-login-sync-popup').popup('close');
-            }
-        });
-    };
 
     // listen on home page
     $(document).on('_pageshow', '#home-page', checkLogin);
@@ -545,8 +502,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     });
 
     $(document).on('vclick', '.choose-provider', function(event){
-        provider = $(event.currentTarget).text();
-        selectProvider(provider);
+        selectProvider($(event.currentTarget).text());
     });
 
     $(document).on(
@@ -587,7 +543,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     );
 
     $('body').pagecontainer('change', '#settings-pcapi-url', function(){
-        syncUtils.setCloudProviderUrl(
+        pcapi.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });
 
