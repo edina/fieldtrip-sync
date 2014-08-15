@@ -452,6 +452,35 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         }
     });
 
+    /*
+     * Get the list of providera available for the app
+     * @param onsuccess a success callback where to pass the list of providers
+     * @param onerror an error callback
+     */
+    var getProviders = function(onsuccess, onerror){
+        pcapi.getProviders(function(success, data){
+            if(success){
+                var providers = [];
+                for(var key in data){
+                    // Just add selected providers from the app configuration
+                    // or all if none was specified
+                    if(config.pcapiProviders === undefined ||
+                       config.pcapiProviders.indexOf(key) > -1){
+                        providers.push(key);
+                    }
+                }
+                if(typeof onsuccess === 'function'){
+                    onsuccess(providers);
+                }
+            }
+            else{
+                if(typeof onerror === 'function'){
+                    onerror();
+                }
+            }
+        });
+    };
+
     var selectProvider = function(provider){
         localStorage.setItem('cloud-provider', provider);
         login.loginCloud(provider, function(userId){
@@ -477,42 +506,37 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
 
         if(icon === 'login-large.png'){
             var $loginPopup = $('#home-login-sync-popup');
-            pcapi.getProviders(function(success, data){
-                if(success){
-                    var providers = [];
-                    for(var key in data){
-                        // Just add selected providers from the app configuration
-                        // or all if none was specified
-                        if(config.pcapiProviders === undefined ||
-                           config.pcapiProviders.indexOf(key) > -1){
-                            providers.push(key);
-                        }
-                    }
 
-                    // If there is only one non-'local' provider login with that one
-                    if(providers.length == 1 && providers[0] != 'local'){
-                        selectProvider(providers[0]);
-                    }
-                    else{
-                        var html = [];
-                        for(var i=0; i<providers.length; i++){
-                            var provider = providers[i];
-                            if(provider == 'local'){
-                                html.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
-                                html.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
-                                html.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
-                                html.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
-                            }
-                            else{
-                                html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
-                            }
-                        }
-                        $("#list-providers").html(html.join(""));
-                        $("#list-providers").listview('refresh');
-                        $loginPopup.popup('open');
-                    }
+            var onsuccess = function(providers){
+                // If there is only one non-'local' provider login with that one
+                if(providers.length == 1 && providers[0] != 'local'){
+                    selectProvider(providers[0]);
                 }
-            });
+                else{
+                    var html = [];
+                    for(var i=0; i<providers.length; i++){
+                        var provider = providers[i];
+                        if(provider == 'local'){
+                            html.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
+                            html.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
+                            html.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
+                            html.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
+                        }
+                        else{
+                            html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
+                        }
+                    }
+                    $("#list-providers").html(html.join(""));
+                    $("#list-providers").listview('refresh');
+                    $loginPopup.popup('open');
+                }
+            };
+
+            var onerror = function(){
+                console.debug('Error querying the providers');
+            };
+
+            getProviders(onsuccess, onerror);
         }
         else {
             login.logoutCloud();
