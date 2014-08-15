@@ -34,102 +34,115 @@ DAMAGE.
 /**
  * interface for the PCAPI
  */
-define([], function(){
+define(['utils'], function(utils){
 
-    return {
-        /**
-         * Initialize pcapi object
-         * @param options.url url of the PCAPI
-         * @param options.version version number of PCAPI
-         */
-        init: function(options){
-            this.cloudProviderUrl = options.url + "/" + options.version + "/pcapi";
-        },
+return {
 
-        /**
-         * @return The URL to the cloud provider.
-         */
-        getCloudProviderUrl: function() {
-            return this.cloudProviderUrl;
-        },
+    /**
+     * Initialize pcapi object
+     * @param options:
+     *   url - URL of the PCAPI
+     *   version - version number of PCAPI
+     */
+    init: function(options){
+        this.cloudProviderUrl = options.url + "/" + options.version + "/pcapi";
+    },
 
-        /**
-         * Fetch all the items on the cloud
-         * @param remoteDir remote directory
-         * @param callback function after fetching the items
-         */
-        getItems: function(remoteDir, callback){
-            var url = this.getCloudProviderUrl() + '/'+remoteDir+'/' +
-                this.getProvider() + '/' + this.getUserId() +'/';
+    /**
+     * @return The URL to the cloud provider.
+     */
+    getCloudProviderUrl: function(){
+        return this.cloudProviderUrl;
+    },
 
-            console.debug("Get items of "+remoteDir+" with " + url);
+    /**
+     * Fetch all the items on the cloud
+     * @param remoteDir remote directory
+     * @param callback function after fetching the items
+     */
+    getItems: function(remoteDir, callback){
+        var url = this.getCloudProviderUrl() + '/'+remoteDir+'/' +
+            this.getProvider() + '/' + this.getUserId() +'/';
 
-            $.ajax({
-                type: "GET",
-                dataType: "json",
-                url: url,
-                success: function(data){
-                    if(data.error == 1){
-                        callback(false);
-                    }
-                    else{
-                        callback(true, data);
-                    }
-                },
-                error: function(jqXHR, status, error){
-                    console.error("Problem with " + url + " : status=" +
-                                  status + " : " + error);
+        console.debug("Get items of "+remoteDir+" with " + url);
+
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: url,
+            cache: false,
+            success: function(data){
+                if(data.error == 1){
                     callback(false);
-                },
-                cache: false
-            });
-        },
-
-        /**
-         * Get all providers PCAPI supports
-         * @param callback function after fetching the providers
-         */
-        getProviders: function(callback){
-            var url = this.getCloudProviderUrl()+"/auth/providers";
-            $.ajax({
-                url: url,
-                dataType: "json",
-                cache: false
-            }).done(function(data){
-                callback(true, data);
-            }).error(function(jqXHR, status, error){
+                }
+                else{
+                    callback(true, data);
+                }
+            },
+            error: function(jqXHR, status, error){
                 console.error("Problem with " + url + " : status=" +
-                                  status + " : " + error);
+                              status + " : " + error);
                 callback(false);
-            });
-        },
+            }
+        });
+    },
 
-        /**
-         * TODO
-         */
-        getProvider: function(){
-            return localStorage.getItem('cloud-provider');
-        },
+    /**
+     * Get all providers PCAPI supports
+     * @param function called after fetching the providers
+     */
+    getProviders: function(callback){
+        var url = this.getCloudProviderUrl()+"/auth/providers";
+        $.ajax({
+            url: url,
+            dataType: "json",
+            cache: false,
+            success: function(data){
+                callback(true, data);
+            },
+            error: function(jqXHR, status, error){
+                console.error("Problem with " + url + " : status=" +
+                              status + " : " + error);
+                callback(false);
+            }
+        });
+    },
 
-        /**
-         * TODO
-         */
-        getUserId: function(){
-            return this.userId;
-        },
+    /**
+     * TODO
+     */
+    getProvider: function(){
+        return localStorage.getItem('cloud-provider');
+    },
 
-        /**
-         * TODO
-         */
-        setProvider: function(provider){
-            this.provider = provider;
-        },
+    /**
+     * TODO
+     */
+    getUserId: function(){
+        return this.userId;
+    },
 
-        /**
-         * TODO
-         */
-        setUserId: function(userId){
-            this.userId = userId;
-        }
-    };
+    /**
+     * Set the cloud provider URL.
+     * @param root The Server URL root.
+     */
+    setCloudProviderUrl: function(root) {
+        this.cloudProviderUrl = root + "/" + utils.getPCAPIVersion() + "/pcapi";
+    },
+
+    /**
+     * TODO
+     */
+    setProvider: function(provider){
+        localStorage.setItem('cloud-provider', provider);
+    },
+
+    /**
+     * TODO
+     */
+    setUserId: function(userId){
+        this.userId = userId;
+    }
+};
+
 });
