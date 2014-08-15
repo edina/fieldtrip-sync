@@ -51,6 +51,7 @@ sys:{
             var loginStr = 'if(document.getElementsByName("login_email").length > 0){document.getElementsByName("login_email")[1].value="' + user.name + '";document.getElementsByName("login_password")[1].value="' + user.pass + '";document.querySelector(\'button[type="submit"]\').click();}else{}'; // jshint ignore:line
 
             login.loginCloud(
+                'dropbox',
                 function(){
                     console.debug("Logged into Dropbox");
                     cb();
@@ -67,14 +68,12 @@ sys:{
                                         {
                                             code: allowStr
                                         },
-                                        function(){}
-                                    );
+                                        function(){
+                                        });
                                 }, 3000); // wait for authorise page
-                            }
-                        );
+                            });
                     }, 3000); // wait for child browser to load
-                }
-            );
+                });
         };
 
         module("Sync");
