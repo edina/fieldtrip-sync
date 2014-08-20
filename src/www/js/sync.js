@@ -586,7 +586,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         }
     );
 
-    $('body').pagecontainer('change', '#settings-pcapi-url', function(){
+    $(document).on('change', '#settings-pcapi-url', function(){
         syncUtils.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });
