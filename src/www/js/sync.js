@@ -33,8 +33,8 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, utils, config, pcapi, login, upload, download){
+define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
+    records, map, settings, utils, pcapi, login, upload, download){
 
     /**
      * Set up buttons according to whether user if logged in.
@@ -49,7 +49,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
     };
 
     /*
-     * Get the list of providera available for the app
+     * Get the list of providers available for the app
      * @param onsuccess a success callback where to pass the list of providers
      * @param onerror an error callback
      */
@@ -60,8 +60,9 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
                 for(var key in data){
                     // Just add selected providers from the app configuration
                     // or all if none was specified
-                    if(config.pcapiProviders === undefined ||
-                       config.pcapiProviders.indexOf(key) > -1){
+                    var pcapiProviders = utils.getPCAPIProviders();
+                    if(pcapiProviders === undefined ||
+                       pcapiProviders.indexOf(key) > -1){
                         providers.push(key);
                     }
                 }
@@ -431,7 +432,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
         // check settings first for defined pcapi root url
         root = settings.get("pcapi-url");
         if(root === undefined){
-            root = config.pcapiurl;
+            root = utils.getPCAPIURL();
         }
     }
     else{
@@ -440,7 +441,7 @@ define(['records', 'map', 'settings', 'utils', 'config', './pcapi', './login', '
             root += ':' + location.port;
         }
     }
-    pcapi.init({"url": root, "version": config.pcapiversion});
+    pcapi.init({"url": root, "version": utils.getPCAPIVersion()});
 
     login.checkLogin(function(userId){
         if(userId){
