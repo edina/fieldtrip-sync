@@ -46,7 +46,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
      */
     var createRemoteRecord = function(id, record, callback) {
         var userId = login.getUser().id;
-        var cloudProviderUrl = _this.syncUtils.getCloudProviderUrl();
+        var cloudProviderUrl = pcapi.getCloudProviderUrl();
 
         // clone record for remote copy
         var dropboxRecord = jQuery.extend(true, {}, record);
@@ -61,7 +61,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
 
             // convert asset URLs to simple filename
             $.each(dropboxRecord.fields, function(i, field){
-                if(field.val && _this.syncUtils.isAsset(field)){
+                if(field.val && records.isAsset(field)){
                     field.val = field.val.substr(field.val.lastIndexOf('/') + 1);
                 }
             });
@@ -110,7 +110,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                     // create any asserts associated with record
                     $.each(record.fields, function(i, field){
                         var type = records.typeFromId(field.id);
-                        if(_this.syncUtils.isAsset(field, type)){
+                        if(records.isAsset(field, type)){
                             ++assetCount;
                             var options = new FileUploadOptions();
                             //options.chunkedMode = false;  // ?
@@ -171,14 +171,6 @@ define(['records', 'map', 'utils', './pcapi', './login'],
     };
 
 var _this = {
-
-    /**
-     * Initialise upload module.
-     * @param syncUtils common sync utilities.
-     */
-    init: function(syncUtils){
-        this.syncUtils = syncUtils;
-    },
 
     /**
      * Upload unsynced records.

@@ -40,21 +40,13 @@ define(['records', 'map', 'file', 'utils', './pcapi', './login'],
 return {
 
     /**
-     * Initialise upload module.
-     * @param syncUtils common sync utilities.
-     */
-    init: function(syncUtils){
-        this.syncUtils = syncUtils;
-    },
-
-    /**
      * Download editor from cloud.
      * @param editor The editor name.
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadEditor: function(editor, callback){
         var userId = login.getUser().id;
-        var root = this.syncUtils.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
+        var root = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
         var editorUrl = root + "/editors/" + editor;
 
         $.ajax({
@@ -87,19 +79,19 @@ return {
 
     /**
      * Download item from cloud provider.
-     * @param options.fileName the name of item
-     * @param options.remoteDir the name of the directory on the server
-     * @param options.localDir the local directory where the item will be downloaded.
-     * @param options.localFileName is the local filename, use it when you want the
-     * downloaded item to have different name from the remote one
+     * @param options:
+     *   fileName the name of item
+     *   remoteDir the name of the directory on the server
+     *   localDir the local directory where the item will be downloaded.
+     *   localFileName is the local filename, use it when you want the downloaded
+     *     item to have different name from the remote one
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadItem: function(options, callback){
         var userId = login.getUser().id;
-        //TODO maybe think of a cleverer way of getting the provider
-        var root = this.syncUtils.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
+        var root = pcapi.getCloudProviderUrl() + '/fs/' +
+            pcapi.getProvider() + '/' + userId;
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
-        console.log("downloading "+itemUrl);
 
         var target;
         if(options.localFileName){
@@ -145,7 +137,7 @@ return {
         };
 
         file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
-            var url = this.syncUtils.getCloudProviderUrl() + '/'+remoteDir+'/'+pcapi.getProvider()+'/' +
+            var url = pcapi.getCloudProviderUrl() + '/'+remoteDir+'/'+pcapi.getProvider()+'/' +
                 userId +'/';
 
             console.debug("Sync "+remoteDir+" with " + url);
@@ -217,7 +209,7 @@ return {
             }
         });
 
-        var recordsDir = this.syncUtils.getCloudProviderUrl() +
+        var recordsDir = pcapi.getCloudProviderUrl() +
             '/records/'+pcapi.getProvider()+'/' + userId + "/";
         var downloadQueue = [];
         var count = 0;
@@ -307,7 +299,7 @@ return {
      * downloaded.
      */
     downloadRecord: function(name, callback, orgRecord){
-        var rootUrl = this.syncUtils.getCloudProviderUrl() + '/records/'+pcapi.getProvider()+'/' +
+        var rootUrl = pcapi.getCloudProviderUrl() + '/records/'+pcapi.getProvider()+'/' +
             login.getUser().id + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 
@@ -370,7 +362,7 @@ return {
 
                 //  fetch assets and convert URLs
                 $.each(record.fields, $.proxy(function(i, field){
-                    if(this.syncUtils.isAsset(field)){
+                    if(records.isAsset(field)){
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
