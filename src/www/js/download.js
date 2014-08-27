@@ -366,8 +366,10 @@ return {
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
-                        var target = file.getFilePath(records.getAssetsDir()) + "/" +
-                            name + "/" + field.val;
+                        var nameEnc = encodeURI(name);
+                        var fieldValEnc = encodeURI(field.val);
+                        
+                        var target = file.getFilePath(records.getAssetsDir()) + "/" + nameEnc + "/" + fieldValEnc;
 
                         console.debug("download: " + source + " to " + target);
 
