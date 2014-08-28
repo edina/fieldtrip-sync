@@ -358,10 +358,10 @@ return {
                 //utils.printObj(record);
 
                 // convert coordinates to national grid
-                record.point = map.pointToInternal(record.point);
+                record.geometry.coordinates = map.pointToInternal(record.geometry.coordinates);
 
                 //  fetch assets and convert URLs
-                $.each(record.fields, $.proxy(function(i, field){
+                $.each(record.properties.fields, $.proxy(function(i, field){
                     if(records.isAsset(field)){
                         ++assetCount;
 

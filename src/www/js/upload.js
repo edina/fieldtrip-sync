@@ -55,12 +55,12 @@ define(['records', 'map', 'utils', './pcapi', './login'],
         var recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
             userId + '/' + record.name;
 
-        if(dropboxRecord.point !== undefined){
+        if(dropboxRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
-            dropboxRecord.point = map.pointToExternal(dropboxRecord.point);
+            dropboxRecord.geometry.coordinates = map.pointToExternal(dropboxRecord.geometry.coordinates);
 
             // convert asset URLs to simple filename
-            $.each(dropboxRecord.fields, function(i, field){
+            $.each(dropboxRecord.properties.fields, function(i, field){
                 if(field.val && records.isAsset(field)){
                     field.val = field.val.substr(field.val.lastIndexOf('/') + 1);
                 }
@@ -108,7 +108,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                     }
 
                     // create any asserts associated with record
-                    $.each(record.fields, function(i, field){
+                    $.each(record.properties.fields, function(i, field){
                         var type = records.typeFromId(field.id);
                         if(records.isAsset(field, type)){
                             ++assetCount;
