@@ -33,8 +33,8 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, utils, pcapi, login, upload, download){
+define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
+    records, map, settings, ui, utils, pcapi, login, upload, download){
 
     /**
      * Set up buttons according to whether user if logged in.
@@ -96,20 +96,6 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
      * Set up records page for syncing.
      */
     var recordsPage = function(){
-        var addAnnotation = function(id, annotation){
-            $('#saved-records-list-list').append(
-                '<li id="' + id + '"><div class="ui-grid-b"> \
-                   <div class="ui-block-a saved-records-list-synced-' + annotation.isSynced + '">\
-                   </div>\
-                   <div class="ui-block-b saved-record-view">\
-                     <a href="#">' + annotation.record.name + '</a>\
-                   </div>\
-                   <div class="ui-block-c">\
-                     <a href="#" class="saved-record-delete" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="a"></a>\
-                   </div>\
-                 </div></li>').trigger('create');
-        };
-
         /**
          * Show upload and sync button on records page header
          */
@@ -138,7 +124,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
                         div: 'saved-records-sync-popup',
                         callback: function(add, id, annotation){
                             if(add){
-                                addAnnotation(id, annotation);
+                                ui.addAnnotation(id, annotation);
                             }
                             else{
                                 // if not add then delete
