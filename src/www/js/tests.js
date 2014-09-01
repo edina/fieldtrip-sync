@@ -142,7 +142,6 @@ sys:{
                                     var $syncing = $('#saved-records-list-list > li .saved-records-list-syncing');
                                     var total = $failed.length + $syncing.length;
 
-                                    console.debug('test condition: ' + total);
                                     return total === 0;
                                 },
                                 'cb': function(success){
