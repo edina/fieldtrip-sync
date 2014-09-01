@@ -50,14 +50,22 @@
 #saved-records-page-header-login-sync.cloud-login{
     background-image: url("images/login.png");
     background-size: 26px 26px;
-    background-position: 5px 5px;
+    background-position: 8px 4px;
     border: #b5c976 solid 1.5px;
+    float: right;
+}
+
+#saved-records-page-header-login-sync.cloud-logout{
+    background-image: url("images/logout.png");
+    background-size: 26px 26px;
+    background-position: 8px 4px;
+    border: #b5c976 solid 1.5px;
+    float: right;
 }
 
 #saved-records-page-header-upload{
     background-image: url("images/upload.png");
     background-size: 26px 26px;
-    background-position: 5px 5px;
+    background-position: 7px 5px;
     border: #b5c976 solid 1.5px;
-    margin-right: 1em;
 }
