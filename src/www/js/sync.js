@@ -553,7 +553,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
         }
     );
 
-    $('body').pagecontainer('change', '#settings-pcapi-url', function(){
+    $(document).on('change', '#settings-pcapi-url', function(){
         pcapi.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });
