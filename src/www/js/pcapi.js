@@ -46,6 +46,10 @@ return {
      */
     init: function(options){
         this.cloudProviderUrl = options.url + "/" + options.version + "/pcapi";
+        if(this.getProvider() === null){
+            // make dropbox the default provider
+            this.setProvider('dropbox');
+        }
     },
 
     /**
