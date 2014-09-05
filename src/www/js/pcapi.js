@@ -61,8 +61,12 @@ return {
      * @param callback function after fetching the items
      */
     getItems: function(remoteDir, callback){
-        var url = this.getCloudProviderUrl() + '/'+remoteDir+'/' +
-            this.getProvider() + '/' + this.getUserId() +'/';
+        var userId = "";
+        if (this.getProvider() != "local") {
+            userId = "/"+this.getUserId();
+        }
+        var url = this.getCloudProviderUrl() + '/fs/' +
+            this.getProvider() + userId +'/' + remoteDir +'/';
 
         console.debug("Get items of "+remoteDir+" with " + url);
 

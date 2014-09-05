@@ -453,22 +453,14 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
 
             var onsuccess = function(providers){
                 // If there is only one non-'local' provider login with that one
-                if(providers.length == 1 && providers[0] != 'local'){
+                if(providers.length == 1){
                     selectProvider(providers[0]);
                 }
                 else{
                     var html = [];
                     for(var i=0; i<providers.length; i++){
                         var provider = providers[i];
-                        if(provider == 'local'){
-                            html.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
-                            html.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
-                            html.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
-                            html.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
-                        }
-                        else{
-                            html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
-                        }
+                        html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
                     }
                     $("#list-providers").html(html.join(""));
                     $("#list-providers").listview('refresh');
@@ -478,6 +470,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
 
             var onerror = function(){
                 console.debug('Error querying the providers');
+                utils.inform('Problem with login');
             };
 
             getProviders(onsuccess, onerror);

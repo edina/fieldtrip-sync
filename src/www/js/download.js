@@ -45,8 +45,8 @@ return {
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadEditor: function(editor, callback){
-        var userId = login.getUser().id;
-        var root = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
+        var userId = login.getUserId();
+        var root = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider() + userId;
         var editorUrl = root + "/editors/" + editor;
 
         $.ajax({
@@ -88,7 +88,8 @@ return {
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadItem: function(options, callback){
-        var userId = login.getUser().id;
+        var userId = login.getUserId();
+        
         var root = pcapi.getCloudProviderUrl() + '/fs/' +
             pcapi.getProvider() + '/' + userId;
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
@@ -127,7 +128,10 @@ return {
      */
     downloadItems: function(localDir, remoteDir, callback) {
         utils.inform("Sync "+remoteDir+" ...");
-        var userId = login.getUser().id;
+        var userId = "";
+        if (login.getUser().id != "local") {
+            userId = "/"+login.getUser().id;
+        }
         var downloads = [];
 
         var finished = function(success){
@@ -137,8 +141,8 @@ return {
         };
 
         file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
-            var url = pcapi.getCloudProviderUrl() + '/'+remoteDir+'/'+pcapi.getProvider()+'/' +
-                userId +'/';
+            var url = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider() +
+                userId +'/'+remoteDir;
 
             console.debug("Sync "+remoteDir+" with " + url);
 
@@ -146,7 +150,7 @@ return {
                 type: "GET",
                 dataType: "json",
                 url: url,
-                success: $.proxy(function(data){
+                success: $.proxy(function(data, textStatus, request){
                     if(data.error === 1 || data.metadata.length === 0){
                         // nothing to do
                         utils.inform('No editors to sync');
