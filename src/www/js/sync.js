@@ -40,7 +40,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
      * Set up buttons according to whether user if logged in.
      */
     var checkLogin = function(){
-        if(login.getUser()){
+        if(pcapi.getUser()){
             showSyncButtons();
         }
         else{
@@ -137,7 +137,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
                     });
                 }
                 else{
-                    login.loginCloud(function(userId){
+                    pcapi.loginAsyncCloud(function(userId){
                         if(userId){
                             showRecordsSyncButtons();
                         }
@@ -146,7 +146,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
             }
         );
 
-        if(login.getUser()){
+        if(pcapi.getUser()){
             showRecordsSyncButtons();
         }
         else{
@@ -160,7 +160,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
      */
     var selectProvider = function(provider){
         pcapi.setProvider(provider);
-        login.loginCloud(provider, function(userId){
+        pcapi.loginAsyncCloud(provider, function(userId){
             if(userId){
                 showSyncButtons();
                 $('#home-login-sync-popup').popup('close');
@@ -231,7 +231,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
                 };
 
                 // sync uploaded records with dropbox
-                if(login.getUser().cursor === undefined){
+                if(pcapi.getUser().cursor === undefined){
                     // no cursor found do a full sync
                     download.downloadEditors(function(success){
                         if(success){
@@ -272,7 +272,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
      * Store current dropbox state cursor with cloud login details.
      */
     var syncStoreCursor = function(){
-        var userId = login.getUser().id;
+        var userId = pcapi.getUser().id;
         var url = pcapi.getCloudProviderUrl() + '/sync/'+pcapi.getProvider()+'/' + userId;
         $.ajax({
             type: "GET",
@@ -280,7 +280,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
             url: url,
             success: function(data){
                 console.debug("Save cursor: " + data.cursor);
-                login.setCloudLogin(userId, data.cursor);
+                pcapi.setCloudLogin(userId, data.cursor);
             },
             error: function(jqXHR, status, error){
                 console.error("syncStoreCursor: Problem fetching cursor " + url +
@@ -296,7 +296,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
      * @param callback Function executed each time an annotation is added or deleted.
      */
     var syncWithCursor = function(complete, callback) {
-        var user = login.getUser();
+        var user = pcapi.getUser();
 
         // track asynchronous jobs
         var jobs = 0;
@@ -429,7 +429,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
     }
     pcapi.init({"url": root, "version": utils.getPCAPIVersion()});
 
-    login.checkLogin(function(userId){
+    pcapi.checkLogin(function(userId){
         if(userId){
             showSyncButtons();
         }
@@ -476,7 +476,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
             getProviders(onsuccess, onerror);
         }
         else {
-            login.logoutCloud();
+            pcapi.logoutCloud();
             hideSyncButtons();
         }
     });
@@ -522,7 +522,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
         }
     );
 
-    $('body').pagecontainer('change', '#settings-pcapi-url', function(){
+    $('body').on('change', '#settings-pcapi-url', function(){
         pcapi.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });

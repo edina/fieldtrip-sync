@@ -45,7 +45,7 @@ return {
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadEditor: function(editor, callback){
-        var userId = login.getUserId();
+        var userId = pcapi.getUserId();
         var root = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider() + userId;
         var editorUrl = root + "/editors/" + editor;
 
@@ -88,7 +88,7 @@ return {
      * @param callback Function will be called when editor is successfully downloaded.
      */
     downloadItem: function(options, callback){
-        var userId = login.getUserId();
+        var userId = pcapi.getUserId();
         
         var root = pcapi.getCloudProviderUrl() + '/fs/' +
             pcapi.getProvider() + '/' + userId;
@@ -129,8 +129,8 @@ return {
     downloadItems: function(localDir, remoteDir, callback) {
         utils.inform("Sync "+remoteDir+" ...");
         var userId = "";
-        if (login.getUser().id != "local") {
-            userId = "/"+login.getUser().id;
+        if (pcapi.getUser().id != "local") {
+            userId = "/"+pcapi.getUser().id;
         }
         var downloads = [];
 
@@ -199,7 +199,7 @@ return {
         utils.inform("Sync records ...");
 
         var annotations = records.getSavedRecords();
-        var userId = login.getUser().id;
+        var userId = pcapi.getUser().id;
 
         // all locally synced records will first be deleted
         $.each(annotations, function(id, annotation){
@@ -304,7 +304,7 @@ return {
      */
     downloadRecord: function(name, callback, orgRecord){
         var rootUrl = pcapi.getCloudProviderUrl() + '/records/'+pcapi.getProvider()+'/' +
-            login.getUser().id + "/" + name;
+            pcapi.getUser().id + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 
         var assetCount = 0;
