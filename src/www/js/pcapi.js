@@ -34,10 +34,14 @@ DAMAGE.
 /**
  * interface for the PCAPI
  */
-define(['utils'], function(utils){
+define([], function(){
 
     /**
-     * change from public --> private
+     * For local provider there are two url <domain>/public/<version>/pcapi...
+     * and <domain>/private/<version>/pcapi..
+     * private is for the logged in users
+     * This function is for replacing public with private
+     * @param provider
      */
     var changeUrl = function(provider){
         if(provider === 'local'){
@@ -175,7 +179,7 @@ define(['utils'], function(utils){
                         },
                         error: function(error){
                             console.error("Problem polling api: " + error.statusText);
-                            closeCb(-1);
+                            closeCb({"status": -1, "msg": "Problem polling api"});
                         },
                         cache: false
                     });
@@ -198,6 +202,7 @@ define(['utils'], function(utils){
                     msg = "Problem with login: " + textStatus;
                 }
 
+                callback({"status": -1, "msg": msg});
                 console.error(msg);
             }
         });
@@ -247,9 +252,18 @@ define(['utils'], function(utils){
          * @param options.version version number of PCAPI
          */
         init: function(options){
+            this.baseUrl = options.url;
+            this.version = options.version;
             this.cloudProviderUrl = options.url + "/" + options.version + "/pcapi";
         },
 
+        /**
+         * function for building the main urls
+         * <domain>/<version>/pcapi/<records/editors>/<provider>/<userid>/...
+         * @param remoteDir the remote dir which is either records or editors
+         * @item the folder/file inside the records/editors folder
+         * @returns url
+         */
         buildUrl : function(remoteDir, item){
             var userId = getCloudLoginId();
             if (userId === "local") {
@@ -262,6 +276,13 @@ define(['utils'], function(utils){
                 this.getProvider() + userId +'/'+item;
         },
 
+        /**
+         * function for building the main urls
+         * <domain>/<version>/pcapi/fs/<provider>/<userid>/<folder>/
+         * @param remoteDir the remote dir
+         * @item the folder/file inside the remoteDir folder
+         * @returns url
+         */
         buildFSUrl : function(remoteDir, item){
             var userId = getCloudLoginId();
             if (userId === "local") {
@@ -478,6 +499,11 @@ define(['utils'], function(utils){
             });
         },
 
+        /**
+         * function for getting the parameters of the url. It's needed
+         * for the synchronous login.
+         * @returns object with key, values of the url parameters
+         */
         getParameters: function (){
             var query = window.location.search.substring(1);
             var queryString = {};
@@ -626,8 +652,12 @@ define(['utils'], function(utils){
             localStorage.setItem('cloud-user', JSON.stringify(this.user));
         },
 
+        /**
+         * Set the cloud provider URL.
+         * @param root The Server URL root.
+         */
         setCloudProviderUrl: function(url){
-            this.cloudProviderUrl = url + "/" + utils.getPCAPIVersion() + "/pcapi";
+            this.cloudProviderUrl = url + "/" + this.version + "/pcapi";
         },
 
         /**
