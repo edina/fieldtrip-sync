@@ -56,7 +56,7 @@
 }
 
 #saved-records-page-header-login-sync.cloud-logout{
-    background-image: url("images/logout.png");
+    background-image: url("images/logout-no-bg.png");
     background-size: 26px 26px;
     background-position: 8px 4px;
     border: #b5c976 solid 1.5px;
