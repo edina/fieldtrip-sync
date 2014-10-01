@@ -99,24 +99,28 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
         /**
          * Show upload and sync button on records page header
          */
-        var showRecordsSyncButtons = function(){
-            $('#saved-records-page-header-login-sync').removeClass(
-                'cloud-login');
-            $('#saved-records-page-header-login-sync').addClass(
-                'cloud-sync');
-            $('#saved-records-page-header-upload').show();
+        var refreshButtonsState = function(state){
+            switch(state){
+                case 'loggedin':
+                    $('#saved-records-page-header-login-sync')
+                        .removeClass('cloud-login')
+                        .addClass('cloud-logout');
+                    $('#saved-records-page-header-upload').show();
+                break;
+                case 'loggedout':
+                    $('#saved-records-page-header-login-sync')
+                        .removeClass('cloud-logout')
+                        .addClass('cloud-login');
+                    $('#saved-records-page-header-upload').hide();
+                break;
+            }
         };
 
-        var hideRecordsSyncButtons = function(){
-            $('#saved-records-page-header-login-sync').addClass('cloud-login');
-            $('#saved-records-page-header-upload').hide();
-        };
-
-        // sync / login button
-        $(document).off('vmousedown', '#saved-records-page-header-login-sync');
+        // Sync button: Not in use view: edina/fieldtrip-gb#76
+        $(document).off('vmousedown', '#saved-records-page-header-login-sync.cloud-sync');
         $(document).on(
             'vmousedown',
-            '#saved-records-page-header-login-sync',
+            '#saved-records-page-header-login-sync.cloud-sync',
             function(event){
                 event.stopImmediatePropagation();
                 if($('#saved-records-page-header-login-sync.cloud-sync').length > 0){
@@ -136,21 +140,41 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
                         }
                     });
                 }
-                else{
-                    login.loginCloud(function(userId){
-                        if(userId){
-                            showRecordsSyncButtons();
-                        }
-                    });
-                }
-            }
-        );
+        });
+
+        // Login button
+        $(document).off('tap', '#saved-records-page-header-login-sync.cloud-login');
+        $(document).on(
+            'tap',
+            '#saved-records-page-header-login-sync.cloud-login',
+            function(event){
+                event.stopImmediatePropagation();
+                var provider = pcapi.getProvider();
+                login.loginCloud(provider, function(userId){
+                    if(userId){
+                        refreshButtonsState('loggedin');
+                    }else{
+                        refreshButtonsState('loggedout');
+                    }
+                });
+        });
+
+        //Logout button
+        $(document).off('tap', '#saved-records-page-header-login-sync.cloud-logout');
+        $(document).on(
+            'tap',
+            '#saved-records-page-header-login-sync.cloud-logout',
+            function(event){
+                event.stopImmediatePropagation();
+                login.logoutCloud();
+                refreshButtonsState('loggedout');
+        });
 
         if(login.getUser()){
-            showRecordsSyncButtons();
+            refreshButtonsState('loggedin');
         }
         else{
-            hideRecordsSyncButtons();
+            refreshButtonsState('loggedout');
         }
     };
 
@@ -529,7 +553,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
         }
     );
 
-    $('body').pagecontainer('change', '#settings-pcapi-url', function(){
+    $(document).on('change', '#settings-pcapi-url', function(){
         pcapi.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });

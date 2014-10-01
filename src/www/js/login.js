@@ -153,19 +153,31 @@ define(['utils', './pcapi'], function(utils, pcapi){
                     $.ajax({
                         url: pollUrl,
                         success: function(pollData){
+                            var endPolling = false;
                             pollTimerCount += pollInterval;
 
-                            if(pollData.state === 1 || pollTimerCount > pollForMax){
-                                if(pollData.state === 1 ){
+                            switch(pollData.state){
+                                case 0: // In progress
+                                break;
+                                case 1: // Authorized
                                     _this.setCloudLogin(cloudUserId);
-                                }
+                                    endPolling = true;
+                                break;
+                                case 2: // Non Authorized
+                                    cloudUserId = undefined;
+                                    endPolling = true;
+                                break;
+                            }
+
+                            // Timeout or end polling
+                            if(pollTimerCount > pollForMax || endPolling){
                                 cb.close();
                                 closeCb(cloudUserId);
                             }
                         },
                         error: function(error){
                             console.error("Problem polling api: " + error.statusText);
-                            closeCb(-1);
+                            closeCb(undefined);
                         },
                         cache: false
                     });

@@ -34,8 +34,37 @@ DAMAGE.
 /**
  * Module deals with download records/forms from the Personal Cloud.
  */
-define(['records', 'map', 'file', 'utils', './pcapi', './login'],
-       function(records, map, file, utils, pcapi, login){ // jshint ignore:line
+define(['records', 'map', 'file', 'utils', './pcapi', './login'], function(// jshint ignore:line
+    records, map, file, utils, pcapi, login){
+
+    /**
+     * Download item from cloud provider.
+     * @param options:
+     *   fileName the name of item
+     *   remoteDir the name of the directory on the server
+     *   localDir the local directory where the item will be downloaded.
+     *   localFileName is the local filename, use it when you want the downloaded
+     *     item to have different name from the remote one
+     * @param callback Function will be called when editor is successfully downloaded.
+     */
+    var downloadItem = function(options, callback){
+        var userId = login.getUser().id;
+        var root = pcapi.getCloudProviderUrl() + '/fs/' +
+            pcapi.getProvider() + '/' + userId;
+        var itemUrl = root + "/" + options.remoteDir + "/" + options.fileName;
+
+        var target;
+        if(options.localFileName){
+            target = file.getFilePath(options.localDir) + '/' + options.localFileName;
+        }
+        else{
+            target = file.getFilePath(options.localDir) + '/' + options.fileName;
+        }
+
+        file.fileTransfer(itemUrl, target, function(success){
+            callback(success);
+        });
+    };
 
 return {
 
@@ -75,38 +104,6 @@ return {
                 callback(false);
             },
         });
-    },
-
-    /**
-     * Download item from cloud provider.
-     * @param options:
-     *   fileName the name of item
-     *   remoteDir the name of the directory on the server
-     *   localDir the local directory where the item will be downloaded.
-     *   localFileName is the local filename, use it when you want the downloaded
-     *     item to have different name from the remote one
-     * @param callback Function will be called when editor is successfully downloaded.
-     */
-    downloadItem: function(options, callback){
-        var userId = login.getUser().id;
-        var root = pcapi.getCloudProviderUrl() + '/fs/' +
-            pcapi.getProvider() + '/' + userId;
-        var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
-
-        var target;
-        if(options.localFileName){
-            target = file.getFilePath(options.localDir)+'/'+options.localFileName;
-        }
-        else{
-            target = file.getFilePath(options.localDir)+'/'+options.fileName;
-        }
-
-        file.fileTransfer(itemUrl, target, function(success){
-            if(success){
-                callback();
-            }
-        });
-
     },
 
     /**
@@ -163,7 +160,7 @@ return {
                             // TODO work would correct filename and path
                             var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
                             var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir};
-                            this.downloadItem(options, function(){
+                            downloadItem(options, function(){
                                 ++count;
                                 downloads.push(fileName);
                                 if(count === noOfItems){

@@ -79,6 +79,7 @@ sys:{
         module("Sync");
 
         if(utils.isMobileDevice()){
+            /* Sync disabled: view edina/fieldtrip-gb#76
             asyncTest("Test Sync", function(){
                 // ensure used is logged out
                 login.logoutCloud();
@@ -114,6 +115,38 @@ sys:{
                                         'attempts': 1000,
                                         'poll': 1000
                                     });
+                                }
+                            });
+                        });
+                    });
+                });
+            });
+            */
+
+            asyncTest("Test Upload Records", function(){
+                // ensure used is logged out
+                login.logoutCloud();
+
+                loginCloud(function(){
+                    // add new text record
+                    sts.addRecord('test sync', function(newCount){
+                        sts.goToRecordsPage(function(){
+                            // click on sync button
+                            sts.clickAndTest({
+                                'id': '.sync-upload-button',
+                                'poll': 2000,
+                                'delay': 1000,
+                                'attempts': 20, // Total 20 * 2000 = 40 seg
+                                'test': function(){
+                                    var $failed = $('#saved-records-list-list > li .saved-records-list-synced-false');
+                                    var $syncing = $('#saved-records-list-list > li .saved-records-list-syncing');
+                                    var total = $failed.length + $syncing.length;
+
+                                    return total === 0;
+                                },
+                                'cb': function(success){
+                                    ok(success, 'Upload records');
+                                    sts.complete();
                                 }
                             });
                         });
