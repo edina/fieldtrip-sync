@@ -33,8 +33,8 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, ui, utils, pcapi, login, upload, download){
+define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
+    records, map, settings, utils, pcapi, login, upload, download){
 
     /**
      * Set up buttons according to whether user if logged in.
@@ -116,7 +116,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
             }
         };
 
-        // Sync button: Not in use view: edina/fieldtrip-gb#76
+        // Sync button: Not used by ftgb: edina/fieldtrip-gb#76
         $(document).off('vmousedown', '#saved-records-page-header-login-sync.cloud-sync');
         $(document).on(
             'vmousedown',
@@ -128,7 +128,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
                         div: 'saved-records-sync-popup',
                         callback: function(add, id, annotation){
                             if(add){
-                                ui.addAnnotation(id, annotation);
+                                records.addAnnotationToSavedRecords(id, annotation);
                             }
                             else{
                                 // if not add then delete
