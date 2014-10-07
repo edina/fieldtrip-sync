@@ -122,7 +122,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
             'vmousedown',
             '#saved-records-page-header-login-sync.cloud-sync',
             function(event){
-                event.stopImmediatePropagation();
+                event.preventDefault();
                 if($('#saved-records-page-header-login-sync.cloud-sync').length > 0){
                     sync({
                         div: 'saved-records-sync-popup',
@@ -148,7 +148,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
             'tap',
             '#saved-records-page-header-login-sync.cloud-login',
             function(event){
-                event.stopImmediatePropagation();
+                event.preventDefault();
                 var provider = pcapi.getProvider();
                 login.loginCloud(provider, function(userId){
                     if(userId){
@@ -165,7 +165,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
             'tap',
             '#saved-records-page-header-login-sync.cloud-logout',
             function(event){
-                event.stopImmediatePropagation();
+                event.preventDefault();
                 login.logoutCloud();
                 refreshButtonsState('loggedout');
         });
