@@ -37,21 +37,6 @@ DAMAGE.
 define([], function(){
 
     /**
-     * For local provider there are two url <domain>/public/<version>/pcapi...
-     * and <domain>/private/<version>/pcapi..
-     * private is for the logged in users
-     * This function is for replacing public with private
-     * @param provider
-     */
-    var changeUrl = function(provider){
-        if(provider === 'local'){
-            if(_this.getCloudProviderUrl().indexOf("public") > -1){
-                _this.cloudProviderUrl = _this.getCloudProviderUrl().replace("public", "private");
-            }
-        }
-    };
-
-    /**
      * Unset user login id.
      */
     var clearCloudLogin = function(){
@@ -65,7 +50,6 @@ define([], function(){
      * @param cbrowser Function to allow caller requires access to childbrowser.
      */
     var doLogin = function(provider, callback, cbrowser){
-        changeUrl(provider);
         var loginUrl = _this.getCloudProviderUrl() + '/auth/' + provider;
         if (provider === 'local') {
             doLoginLocal(callback, cbrowser, loginUrl);
@@ -81,8 +65,11 @@ define([], function(){
      * @param loginUrl
      */
     var doLoginLocal = function(callback, cbrowser, loginUrl){
-        var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
-        var pollUrl = loginUrl + '?async=true';
+        var pollTimer,
+            pollTimerCount = 0,
+            pollInterval = 3000,
+            pollForMax = 5 * 60 * 1000; //min
+        var pollUrl = loginUrl;
         console.debug('Login with: ' + pollUrl);
         var cb = window.open(pollUrl, '_blank', 'location=no');
 
@@ -101,20 +88,23 @@ define([], function(){
                 success: function(pollData){
                     pollTimerCount += pollInterval;
 
-                    if(pollData.state === 1 || pollTimerCount > pollForMax){
-                        var cloudUserId = "local";
-                        if(pollData.state === 1 ){
-                            _this.setCloudLogin(cloudUserId);
-                        }
-                        cb.close();
-                        closeCb("local");
+                    // Ignore html responses (like the redirection from Shibboleth)
+                    if(typeof(pollData) === 'object'){
+                      if(pollData.state === 1 || pollTimerCount > pollForMax){
+                          var cloudUserId;
+                          if(pollData.state === 1 ){
+                              cloudUserId = pollData.userid;
+                              _this.setCloudLogin(cloudUserId);
+                          }
+                          cb.close();
+                          closeCb(cloudUserId);
+                      }
                     }
                 },
                 error: function(error){
                     console.error("Problem polling api: " + error.statusText);
-                    closeCb (-1);
+                    closeCb();
                 },
-                cache: false
             });
         }, pollInterval);
 
@@ -266,14 +256,8 @@ define([], function(){
          */
         buildUrl : function(remoteDir, item){
             var userId = getCloudLoginId();
-            if (userId === "local") {
-                userId = "";
-            }
-            else{
-                userId = "/"+userId;
-            }
-            return this.getCloudProviderUrl() + '/'+remoteDir+'/' +
-                this.getProvider() + userId +'/'+item;
+            return this.getCloudProviderUrl() + '/'+ remoteDir + '/' +
+                   this.getProvider() + '/' + userId + '/' + item;
         },
 
         /**
@@ -304,7 +288,6 @@ define([], function(){
                 console.log("check if user is logged in");
                 var user = getCloudLogin();
                 if(user !== null && user.id){
-                    changeUrl(this.getProvider());
                     var url = this.getCloudProviderUrl() + '/auth/'+this.getProvider();
                     if (user.id !== "local") {
                         url += '/'+user.id;
@@ -321,8 +304,7 @@ define([], function(){
                             if(data.state === 1){
                                 this.setCloudLogin(user.id, user.cursor);
                             }
-                            //TO-DO: investigate why I need it here as well.
-                            changeUrl(this.getProvider());
+
                             callback(true, data);
                         }, this),
                         error: function(jqXHR, status, error){
@@ -753,7 +735,7 @@ define([], function(){
             });
         }
     };
-    
+
     return _this;
 
 });
