@@ -67,13 +67,14 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             });
 
             var assetCount = 0;
-            var finished = function(success){
+            var finished = function(success, msg){
                 --assetCount;
                 if(assetCount < 1){
                     var delay = 0;
                     if(!success){
+                        msg = msg || 'An error has occurred syncing';
                         delay = 3000;
-                        utils.inform('An error has occurred syncing');
+                        utils.inform(msg);
                     }
 
                     setTimeout(function(){
@@ -92,9 +93,14 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                 data: JSON.stringify(dropboxRecord, undefined, 2),
                 success: function(data){
                     // If the response is not a json or contains an error finish
-                    if(typeof(data) !== 'object' || data.error !== 0){
-                        console.error(data);
+                    if(typeof(data) !== 'object'){
                         finished(false);
+                        return;
+                    }
+
+                    if(data.error !== 0){
+                        console.error(data);
+                        finished(false, data.msg);
                         return;
                     }
 
