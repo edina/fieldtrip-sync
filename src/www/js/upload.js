@@ -68,11 +68,14 @@ define(['records', 'map', 'utils', './pcapi', './login'],
 
             var assetCount = 0;
             var finished = function(success, msg){
+                // default values
+                success = success || true;
+                msg = msg || 'An error has occurred syncing';
+
                 --assetCount;
                 if(assetCount < 1){
                     var delay = 0;
                     if(!success){
-                        msg = msg || 'An error has occurred syncing';
                         delay = 3000;
                         utils.inform(msg);
                     }
@@ -112,7 +115,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                         console.debug(record.name + " renamed to " + name);
                         utils.inform(record.name + " renamed to " + name);
                         record.name = name;
-                        $('#' + id + ' h3').text(name);
+                        $('#' + id + ' .saved-records-view > a').text(name);
 
                         // update URL
                         recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
@@ -174,7 +177,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                     });
 
                     if(assetCount === 0){
-                        finished();
+                        finished(true);
                     }
                 },
                 error: function(jqXHR, status, error){
