@@ -67,8 +67,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             });
 
             var assetCount = 0;
-            var success = true;
-            var finished = function(){
+            var finished = function(success){
                 --assetCount;
                 if(assetCount < 1){
                     var delay = 0;
@@ -92,6 +91,13 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                 cache: false,
                 data: JSON.stringify(dropboxRecord, undefined, 2),
                 success: function(data){
+                    // If the response is not a json or contains an error finish
+                    if(typeof(data) !== 'object' || data.error !== 0){
+                        console.error(data);
+                        finished(false);
+                        return;
+                    }
+
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
@@ -133,14 +139,27 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                                     encodeURI(assetUrl),
                                     function(result){
                                         utils.printObj(result);
-                                        finished();
+                                        var success;
+                                        try{
+                                            var res = JSON.parse(result.response);
+                                            if(res.error === 0){
+                                                success = true;
+                                            }else{
+                                                success = false;
+                                                console.error(res.msg);
+                                            }
+                                        }catch(e){
+                                            console.debug('Non json response');
+                                            success = false;
+                                        }finally{
+                                            finished(success);
+                                        }
                                     },
                                     function(error){
                                         utils.printObj(error);
                                         console.error("Problem uploading asset: " +
                                                       assetUrl + ", error = " + error.code);
-                                        success = false;
-                                        finished();
+                                        finished(false);
                                     },
                                     options
                                 );
@@ -155,8 +174,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                 error: function(jqXHR, status, error){
                     console.error("Problem creating remote directory " + recordDir +
                                   " : " + status + " : " + error);
-                    success = false;
-                    finished();
+                    finished(false);
                 }
             });
         }
