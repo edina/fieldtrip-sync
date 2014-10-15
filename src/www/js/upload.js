@@ -67,14 +67,17 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             });
 
             var assetCount = 0;
-            var success = true;
-            var finished = function(){
+            var finished = function(success, msg){
+                // default values
+                success = success || true;
+                msg = msg || 'An error has occurred syncing';
+
                 --assetCount;
                 if(assetCount < 1){
                     var delay = 0;
                     if(!success){
                         delay = 3000;
-                        utils.inform('An error has occurred syncing');
+                        utils.inform(msg);
                     }
 
                     setTimeout(function(){
@@ -92,6 +95,18 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                 cache: false,
                 data: JSON.stringify(dropboxRecord, undefined, 2),
                 success: function(data){
+                    // If the response is not a json or contains an error finish
+                    if(typeof(data) !== 'object'){
+                        finished(false);
+                        return;
+                    }
+
+                    if(data.error !== 0){
+                        console.error(data);
+                        finished(false, data.msg);
+                        return;
+                    }
+
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
@@ -100,7 +115,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                         console.debug(record.name + " renamed to " + name);
                         utils.inform(record.name + " renamed to " + name);
                         record.name = name;
-                        $('#' + id + ' h3').text(name);
+                        $('#' + id + ' .saved-records-view > a').text(name);
 
                         // update URL
                         recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
@@ -133,14 +148,27 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                                     encodeURI(assetUrl),
                                     function(result){
                                         utils.printObj(result);
-                                        finished();
+                                        var success;
+                                        try{
+                                            var res = JSON.parse(result.response);
+                                            if(res.error === 0){
+                                                success = true;
+                                            }else{
+                                                success = false;
+                                                console.error(res.msg);
+                                            }
+                                        }catch(e){
+                                            console.debug('Non json response');
+                                            success = false;
+                                        }finally{
+                                            finished(success);
+                                        }
                                     },
                                     function(error){
                                         utils.printObj(error);
                                         console.error("Problem uploading asset: " +
                                                       assetUrl + ", error = " + error.code);
-                                        success = false;
-                                        finished();
+                                        finished(false);
                                     },
                                     options
                                 );
@@ -149,14 +177,13 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                     });
 
                     if(assetCount === 0){
-                        finished();
+                        finished(true);
                     }
                 },
                 error: function(jqXHR, status, error){
                     console.error("Problem creating remote directory " + recordDir +
                                   " : " + status + " : " + error);
-                    success = false;
-                    finished();
+                    finished(false);
                 }
             });
         }
