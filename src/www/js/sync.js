@@ -601,8 +601,6 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
                 // When the two values are resolved
                 $.when(availableEditors, activeEditors)
                     .done(function(available, active){
-                        console.debug(available);
-                        console.debug(active);
                         createListEditors(available, active);
                     });
             });
