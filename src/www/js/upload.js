@@ -93,7 +93,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                         $('#' + id + ' h3').text(name);
 
                     }
-            
+
                     // create any asserts associated with record
                     $.each(record.properties.fields, function(i, field){
                         var type = records.typeFromId(field.id);
@@ -101,18 +101,18 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                             ++assetCount;
                             var options = new FileUploadOptions();
                             //options.chunkedMode = false;  // ?
-            
+
                             if(type === 'audio'){
                                 options.mimeType = "audio/3gpp";
                             }
                             else if(type === 'track'){
                                 options.mimeType = "text/xml";
                             }
-            
+
                             var fileName = field.val.substr(field.val.lastIndexOf('/') + 1);
                             var assetUrl = pcapi.buildUrl("records", record.name) + '/' + fileName;
                             options.fileName = fileName;
-            
+
                             setTimeout(function(){
                                 var ft = new FileTransfer();
                                 ft.upload(
@@ -134,7 +134,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                             }, 1000);
                         }
                     });
-            
+
                     if(assetCount === 0){
                         finished();
                     }
