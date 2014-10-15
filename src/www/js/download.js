@@ -35,7 +35,7 @@ DAMAGE.
  * Module deals with download records/forms from the Personal Cloud.
  */
 define(['records', 'map', 'file', 'utils', './pcapi', './login'],
-function(records, map, file, utils, pcapi, login){ // jshint ignore:line
+       function(records, map, file, utils, pcapi, login){ // jshint ignore:line
 
     var downloadAndStoreEditor = function(userId, editor, path, callback){ // jshint ignore:line
         callback = callback || function(){};
@@ -74,14 +74,14 @@ function(records, map, file, utils, pcapi, login){ // jshint ignore:line
         $.get(editorUrl)
             .done(function(data){
                 if(typeof(data.error) === 'undefined'){
-                    utils.docallback(success, data);
+                    utils.doCallback(success, data);
                 }
                 else{
-                    utils.docallback(error, data);
+                    utils.doCallback(error, data);
                 }
             })
             .fail(function(xhr, msg){
-                utils.docallback(error, msg);
+                utils.doCallback(error, msg);
             });
     };
 
@@ -98,10 +98,10 @@ function(records, map, file, utils, pcapi, login){ // jshint ignore:line
 
         $.get(url)
          .success(function(data){
-            utils.docallback(success, data);
+            utils.doCallback(success, data);
          })
          .fail(function(xhr, msg){
-            utils.docallback(error, msg);
+            utils.doCallback(error, msg);
          });
     };
 
