@@ -35,46 +35,92 @@ DAMAGE.
  * Module deals with download records/forms from the Personal Cloud.
  */
 define(['records', 'map', 'file', 'utils', './pcapi', './login'],
-       function(records, map, file, utils, pcapi, login){ // jshint ignore:line
+function(records, map, file, utils, pcapi, login){ // jshint ignore:line
 
-return {
+    var downloadAndStoreEditor = function(userId, editor, path, callback){ // jshint ignore:line
+        callback = callback || function(){};
+
+        downloadEditor(
+            userId,
+            editor,
+            function(data){
+                file.writeToFile(
+                    {
+                        fileName: editor,
+                        data: data
+                    },
+                    path,
+                    callback
+                );
+            },
+            function(err){
+                console.error(err);
+                callback(false);
+            }
+        );
+    };
 
     /**
      * Download editor from cloud.
+     * @param userId User id
      * @param editor The editor name.
-     * @param callback Function will be called when editor is successfully downloaded.
+     * @param success Function will be called when editor is successfully downloaded.
+     * @param error  Function will be called when an error happen
      */
-    downloadEditor: function(editor, callback){
-        var userId = pcapi.getUserId();
-        var root = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider() + userId;
+    var downloadEditor = function(userId, editor, success, error){ // jshint ignore:line
+        var root = pcapi.getCloudProviderUrl() + '/fs/'+ pcapi.getProvider() + '/'+ userId;
         var editorUrl = root + "/editors/" + editor;
 
-        $.ajax({
-            type: "GET",
-            url: editorUrl,
-            success: function(data){
+        $.get(editorUrl)
+            .done(function(data){
                 if(typeof(data.error) === 'undefined'){
-                    var s = editor.lastIndexOf('/') + 1;
-                    file.writeToFile({"fileName":
-                        editor,
-                        "data": data},
-                        records.getEditorsDir(),
-                        callback
-                    );
+                    utils.docallback(success, data);
                 }
                 else{
-                    console.error("Error returned with " + editorUrl +
-                                    " : error = " + data.error);
-                    callback(false);
+                    utils.docallback(error, data);
                 }
-            },
-            error: function(jqXHR, status, error){
-                utils.inform('Editor Problem: ' + editor, 3000, error);
-                console.error("Error downloading editor: " + editorUrl +
-                                " : status=" + status + " : " + error);
-                callback(false);
-            },
-        });
+            })
+            .fail(function(xhr, msg){
+                utils.docallback(error, msg);
+            });
+    };
+
+
+    /**
+     * List the editors available for an user
+     * @param userId The editor name.
+     * @param success function called after success
+     * @param error function called in case of an error
+     */
+    var listEditors = function(userId, success, error){
+        var url = pcapi.buildUserUrl(userId, 'editors');
+        console.debug(url);
+
+        $.get(url)
+         .success(function(data){
+            utils.docallback(success, data);
+         })
+         .fail(function(xhr, msg){
+            utils.docallback(error, msg);
+         });
+    };
+
+
+return {
+
+    listEditors: listEditors,
+
+    downloadUserEditor: function(editor){
+        var userId = pcapi.getUserId();
+        var path = records.getEditorsDir();
+        downloadAndStoreEditor(userId, editor, path);
+    },
+
+    downloadPublicEditor: function(editor){
+        var userId = pcapi.getAnonymousUserId();
+        var path = records.getPublicEditorsDir();
+
+        downloadAndStoreEditor(userId, editor, path);
     },
 
     /**
@@ -89,7 +135,7 @@ return {
      */
     downloadItem: function(options, callback){
         var userId = pcapi.getUserId();
-        
+
         var root = pcapi.getCloudProviderUrl() + '/fs/' +
             pcapi.getProvider() + '/' + userId;
         var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;

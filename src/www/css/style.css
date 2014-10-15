@@ -61,3 +61,13 @@
     border: #b5c976 solid 1.5px;
     margin-right: 1em;
 }
+
+ul#editors-list > li label{
+    float: left;
+    margin: 8px 0px;
+}
+
+ul#editors-list > li .ui-flipswitch{
+    float: right;
+}
+

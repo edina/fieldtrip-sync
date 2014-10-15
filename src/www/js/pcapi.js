@@ -34,7 +34,7 @@ DAMAGE.
 /**
  * interface for the PCAPI
  */
-define([], function(){
+define(['config'], function(config){
 
     /**
      * Unset user login id.
@@ -256,8 +256,15 @@ define([], function(){
          */
         buildUrl : function(remoteDir, item){
             var userId = getCloudLoginId();
-            return this.getCloudProviderUrl() + '/'+ remoteDir + '/' +
-                   this.getProvider() + '/' + userId + '/' + item;
+            return this.buildUserUrl(userId, remoteDir, item);
+        },
+
+
+        buildUserUrl: function(userId, category, path){
+            path = path || '';
+
+            return this.getCloudProviderUrl() + '/'+ category + '/' +
+                   this.getProvider() + '/' + userId + '/' + path;
         },
 
         /**
@@ -357,6 +364,11 @@ define([], function(){
                     callback(false);
                 }
             });
+        },
+
+
+        getAnonymousUserId: function(){
+          return config.pcapianonymous || null;
         },
 
         /**
@@ -530,7 +542,7 @@ define([], function(){
          * @returns the provider from
          */
         getProvider: function(){
-            return localStorage.getItem('cloud-provider');
+            return localStorage.getItem('cloud-provider') || 'local';
         },
 
         /**

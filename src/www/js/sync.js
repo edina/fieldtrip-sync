@@ -33,8 +33,8 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, ui, utils, pcapi, login, upload, download){
+define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './upload', './download', 'file'], function(// jshint ignore:line
+    records, map, settings, ui, utils, pcapi, login, upload, download, file){
 
     /**
      * Set up buttons according to whether user if logged in.
@@ -391,7 +391,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
                     }
                     else if(details.type === 'editors'){
                         ++jobs;
-                        download.downloadEditor(details.val, function(){
+                        download.downloadUserEditor(details.val, function(){
                             finished();
                         });
                     }
@@ -508,6 +508,126 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './login', './up
             });
         }
     );
+
+    $(document).on(
+        'vclick',
+        '.download-public-forms',
+        function(){
+            $('body').one('_pageshow', '#editors-list-page', function(){
+
+                // Returns a promise that resolves in a list of active editors
+                var getActiveEditors = function(){
+                    var deferred = new $.Deferred();
+                    records.getEditors('public', function(files){
+                        var editors = [];
+                        for(var i = 0; i<files.length; i++){
+                            editors.push(files[i].name);
+                        }
+                        deferred.resolve(editors);
+                    });
+                    return deferred.promise();
+                };
+
+                // Returns a promise that resolves in a list of available editors
+                // for given userId
+                var getAvailableEditors = function(userId){
+                    var deferred = new $.Deferred();
+                    download.listEditors(
+                        userId,
+                        function(data){
+                            if(typeof(data) !== 'object'){
+                                deferred.reject({msg: 'Non json response'});
+                                return;
+                            }
+
+                            switch(data.error){
+                                case 0:
+                                    deferred.resolve(data);
+                                    break;
+                                default: // Any errors
+                                    deferred.reject(data.msg);
+                                    console.error(data.msg);
+                            }
+                        },
+                        function(err){
+                             deferred.reject(err);
+                        });
+
+                    return deferred.promise();
+                };
+
+                // Generate the html with the editors
+                var createListEditors = function(editors, active){
+                    var html = '';
+                    var checked;
+
+                    for(var i=0; i<editors.metadata.length; i++){
+                        var editorName = editors.metadata[i].replace(/\/editors\/\//g, '');
+                        checked = '';
+
+                        if(active.indexOf(editorName) > -1){
+                            checked = 'checked';
+                        }
+
+                        html += '<li>\
+                                   <div data-role="fieldcontain">\
+                                     <label for="flip-checkbox-'+ i +'">\
+                                     ' + editorName + '\
+                                     </label>\
+                                     <input data-role="flipswitch"\
+                                            name="flip-checkbox-' + i + '"\
+                                            class="editor" editor-name="'+editorName+'"\
+                                            type="checkbox" \
+                                            ' + checked + ' \
+                                      >\
+                                   </div>\
+                                 </li>';
+                    }
+
+                    $('ul#editors-list','#editors-list-page').html(html);
+                    $("ul#editors-list input[data-role='flipswitch']", '#editors-list-page').flipswitch();
+                    $('ul#editors-list', '#editors-list-page').listview('refresh');
+                };
+
+                // Call the two async promises
+                var availableEditors = getAvailableEditors(pcapi.getAnonymousUserId());
+                var activeEditors = getActiveEditors();
+
+                availableEditors.fail(function(err){
+                    utils.inform("Problem fetching public editors");
+                    console.error(err);
+                });
+
+                // When the two values are resolved
+                $.when(availableEditors, activeEditors)
+                    .done(function(available, active){
+                        console.debug(available);
+                        console.debug(active);
+                        createListEditors(available, active);
+                    });
+            });
+
+            $('body').pagecontainer('change', 'editors-list.html');
+        }
+    );
+
+    $(document).on(
+        'change',
+        '#editors-list .editor',
+        function(evt){
+            var $editor = $(evt.target),
+                editorName = $editor.attr('editor-name');
+
+            // Download or delete the editor from the device
+            if($editor.prop('checked')){
+                download.downloadPublicEditor(editorName);
+            }else{
+                file.deleteFile(editorName, records.getPublicEditorsDir());
+            }
+        }
+    );
+
+
     $(document).on(
         'vclick',
         '#home-content-sync',
