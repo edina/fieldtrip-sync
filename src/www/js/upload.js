@@ -51,7 +51,8 @@ define(['records', 'map', 'utils', './pcapi', './login'],
         // clone record for remote copy
         var dropboxRecord = jQuery.extend(true, {}, record);
 
-        if(dropboxRecord.geometry.coordinates !== undefined){
+        if( typeof(dropboxRecord.geometry) === 'object' &&
+            dropboxRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
             dropboxRecord.geometry.coordinates = map.pointToExternal(dropboxRecord.geometry.coordinates);
 
