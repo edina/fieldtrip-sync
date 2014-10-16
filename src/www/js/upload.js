@@ -45,7 +45,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
      * @param callback
      */
     var createRemoteRecord = function(id, record, callback) {
-        var userId = pcapi.getUser().id;
+        var userId = pcapi.getUserId();
         var cloudProviderUrl = pcapi.getCloudProviderUrl();
 
         // clone record for remote copy

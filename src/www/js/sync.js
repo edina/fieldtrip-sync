@@ -298,7 +298,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
      * Store current dropbox state cursor with cloud login details.
      */
     var syncStoreCursor = function(){
-        var userId = pcapi.getUser().id;
+        var userId = pcapi.getUserId();
         var url = pcapi.getCloudProviderUrl() + '/sync/'+pcapi.getProvider()+'/' + userId;
         $.ajax({
             type: "GET",

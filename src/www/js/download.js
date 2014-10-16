@@ -240,7 +240,7 @@ return {
         utils.inform("Sync records ...");
 
         var annotations = records.getSavedRecords();
-        var userId = pcapi.getUser().id;
+        var userId = pcapi.getUserId();
 
         // all locally synced records will first be deleted
         $.each(annotations, function(id, annotation){
@@ -345,7 +345,7 @@ return {
      */
     downloadRecord: function(name, callback, orgRecord){
         var rootUrl = pcapi.getCloudProviderUrl() + '/records/'+pcapi.getProvider()+'/' +
-            pcapi.getUser().id + "/" + name;
+            pcapi.getUserId() + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 
         var assetCount = 0;
