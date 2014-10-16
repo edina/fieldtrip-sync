@@ -45,15 +45,11 @@ define(['records', 'map', 'utils', './pcapi', './login'],
      * @param callback
      */
     var createRemoteRecord = function(id, record, callback) {
-        var userId = login.getUser().id;
+        var userId = pcapi.getUser().id;
         var cloudProviderUrl = pcapi.getCloudProviderUrl();
 
         // clone record for remote copy
         var dropboxRecord = jQuery.extend(true, {}, record);
-
-        // create record URL
-        var recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
-            userId + '/' + record.name;
 
         if(dropboxRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
@@ -86,27 +82,9 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                 }
             };
 
-            console.debug("Post: " + recordDir);
-
-            // post record
-            $.ajax({
-                url: recordDir,
-                type: "POST",
-                cache: false,
-                data: JSON.stringify(dropboxRecord, undefined, 2),
-                success: function(data){
-                    // If the response is not a json or contains an error finish
-                    if(typeof(data) !== 'object'){
-                        finished(false);
-                        return;
-                    }
-
-                    if(data.error !== 0){
-                        console.error(data);
-                        finished(false, data.msg);
-                        return;
-                    }
-
+            //console.debug("Post: " + recordDir);
+            pcapi.saveItem("records", dropboxRecord, function(status, data){
+                if(status){
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
@@ -117,9 +95,6 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                         record.name = name;
                         $('#' + id + ' .saved-records-view > a').text(name);
 
-                        // update URL
-                        recordDir = cloudProviderUrl + '/records/'+pcapi.getProvider()+'/' +
-                            userId + '/' + record.name;
                     }
 
                     // create any asserts associated with record
@@ -138,7 +113,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                             }
 
                             var fileName = field.val.substr(field.val.lastIndexOf('/') + 1);
-                            var assetUrl = recordDir + '/' + fileName;
+                            var assetUrl = pcapi.buildUrl("records", record.name) + '/' + fileName;
                             options.fileName = fileName;
 
                             setTimeout(function(){
@@ -179,13 +154,12 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                     if(assetCount === 0){
                         finished(true);
                     }
-                },
-                error: function(jqXHR, status, error){
-                    console.error("Problem creating remote directory " + recordDir +
-                                  " : " + status + " : " + error);
+                }
+                else{
                     finished(false);
                 }
             });
+
         }
         else{
             console.error("record has no location delete it: " + record.name);

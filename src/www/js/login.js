@@ -77,7 +77,7 @@ define(['utils', './pcapi'], function(utils, pcapi){
     var doLogin = function(provider, callback, cbrowser){
         var loginUrl = pcapi.getCloudProviderUrl() + '/auth/' + provider;
         if (provider === 'local') {
-            doLoginLocal(callback, loginUrl);
+            doLoginLocal(callback, cbrowser, loginUrl);
         }
         else{
             doLoginDropBox(callback, cbrowser, loginUrl);
@@ -89,25 +89,48 @@ define(['utils', './pcapi'], function(utils, pcapi){
      * @param callback Function called after login attempt.
      * @param loginUrl
      */
-    var doLoginLocal = function(callback, loginUrl){
-        $('#login-form').toggle();
-        $(document).off('vmousedown', '#local-login');
-        $(document).on('vmousedown', '#local-login', function(event){
-            loginUrl += '/' + $("#login-username").val();
-            console.debug('Login with: ' + loginUrl + '?async=true');
+    var doLoginLocal = function(callback, cbrowser, loginUrl){
+        var pollTimer, pollTimerCount = 0, pollInterval = 3000, pollForMax = 5 * 60 * 1000; //min
+        var pollUrl = loginUrl + '?async=true';
+        console.debug('Login with: ' + pollUrl);
+        var cb = window.open(pollUrl, '_blank', 'location=no');
 
+
+        // close child browser
+        var closeCb = function(userId){
+            clearInterval(pollTimer);
+            callback(userId);
+        };
+
+        console.debug('Poll: ' + pollUrl);
+        pollTimer = setInterval(function(){
             $.ajax({
-                url: loginUrl + '?async=true',
+                url: pollUrl,
                 timeout: 3000,
-                cache: false,
-                success: function(data){
-                    console.debug("Redirect to: " + data.url);
-                    var cloudUserId = data.userid;
-                    _this.setCloudLogin(cloudUserId);
-                    callback(cloudUserId);
-                }
+                success: function(pollData){
+                    pollTimerCount += pollInterval;
+
+                    if(pollData.state === 1 || pollTimerCount > pollForMax){
+                        var cloudUserId = "local";
+                        if(pollData.state === 1 ){
+                            _this.setCloudLogin(cloudUserId);
+                        }
+                        cb.close();
+                        closeCb("local");
+                    }
+                },
+                error: function(error){
+                    console.error("Problem polling api: " + error.statusText);
+                    closeCb (-1);
+                },
+                cache: false
             });
-        });
+        }, pollInterval);
+
+        if(cbrowser){
+            // caller may want access to child browser reference
+            cbrowser(cb);
+        }
     };
 
     /**
@@ -217,7 +240,11 @@ var _this = {
         if(!this.userId){
             var user = getCloudLogin();
             if(user !== null && user.id){
-                var url = pcapi.getCloudProviderUrl() + '/auth/'+pcapi.getProvider()+'/' + user.id;
+                var url = pcapi.getCloudProviderUrl() + '/auth/'+pcapi.getProvider();
+                if (user.id != "local") {
+                    url += '/'+user.id;
+                }
+
                 console.debug("Check user with: " + url);
                 $.ajax({
                     type: 'GET',
@@ -254,6 +281,15 @@ var _this = {
      */
     getUser: function(){
         return this.user;
+    },
+
+    getUserId: function(){
+        if (this.user.id === "local") {
+            return "";
+        }
+        else{
+            return "/" + this.user.id;
+        }
     },
 
     /**

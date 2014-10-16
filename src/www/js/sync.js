@@ -33,14 +33,15 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload', './download'], function(// jshint ignore:line
-    records, map, settings, utils, pcapi, login, upload, download){
+define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './download', 'file'], function( // jshint ignore:line
+    records, map, settings, ui, utils, pcapi, upload, download, file){
 
     /**
      * Set up buttons according to whether user if logged in.
      */
     var checkLogin = function(){
-        if(login.getUser()){
+        console.debug('check-login');
+        if(pcapi.getUserId()){
             showSyncButtons();
         }
         else{
@@ -117,9 +118,9 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
         };
 
         // Sync button: Not used by ftgb: edina/fieldtrip-gb#76
-        $(document).off('vmousedown', '#saved-records-page-header-login-sync.cloud-sync');
+        $(document).off('vclick', '#saved-records-page-header-login-sync.cloud-sync');
         $(document).on(
-            'vmousedown',
+            'vclick',
             '#saved-records-page-header-login-sync.cloud-sync',
             function(event){
                 event.preventDefault();
@@ -143,14 +144,15 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
         });
 
         // Login button
-        $(document).off('tap', '#saved-records-page-header-login-sync.cloud-login');
+        $(document).off('vclick', '#saved-records-page-header-login-sync.cloud-login');
         $(document).on(
-            'tap',
+            'vclick',
             '#saved-records-page-header-login-sync.cloud-login',
             function(event){
                 event.preventDefault();
+                console.debug('vclick in login');
                 var provider = pcapi.getProvider();
-                login.loginCloud(provider, function(userId){
+                pcapi.loginAsyncCloud(provider, function(userId){
                     if(userId){
                         refreshButtonsState('loggedin');
                     }else{
@@ -160,17 +162,17 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
         });
 
         //Logout button
-        $(document).off('tap', '#saved-records-page-header-login-sync.cloud-logout');
+        $(document).off('vclick', '#saved-records-page-header-login-sync.cloud-logout');
         $(document).on(
-            'tap',
+            'vclick',
             '#saved-records-page-header-login-sync.cloud-logout',
             function(event){
                 event.preventDefault();
-                login.logoutCloud();
+                pcapi.logoutCloud();
                 refreshButtonsState('loggedout');
         });
 
-        if(login.getUser()){
+        if(pcapi.getUserId()){
             refreshButtonsState('loggedin');
         }
         else{
@@ -184,7 +186,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
      */
     var selectProvider = function(provider){
         pcapi.setProvider(provider);
-        login.loginCloud(provider, function(userId){
+        pcapi.loginAsyncCloud(provider, function(userId){
             if(userId){
                 showSyncButtons();
                 $('#home-login-sync-popup').popup('close');
@@ -255,7 +257,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
                 };
 
                 // sync uploaded records with dropbox
-                if(login.getUser().cursor === undefined){
+                if(pcapi.getUser().cursor === undefined){
                     // no cursor found do a full sync
                     download.downloadEditors(function(success){
                         if(success){
@@ -296,7 +298,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
      * Store current dropbox state cursor with cloud login details.
      */
     var syncStoreCursor = function(){
-        var userId = login.getUser().id;
+        var userId = pcapi.getUser().id;
         var url = pcapi.getCloudProviderUrl() + '/sync/'+pcapi.getProvider()+'/' + userId;
         $.ajax({
             type: "GET",
@@ -304,7 +306,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
             url: url,
             success: function(data){
                 console.debug("Save cursor: " + data.cursor);
-                login.setCloudLogin(userId, data.cursor);
+                pcapi.setCloudLogin(userId, data.cursor);
             },
             error: function(jqXHR, status, error){
                 console.error("syncStoreCursor: Problem fetching cursor " + url +
@@ -320,7 +322,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
      * @param callback Function executed each time an annotation is added or deleted.
      */
     var syncWithCursor = function(complete, callback) {
-        var user = login.getUser();
+        var user = pcapi.getUser();
 
         // track asynchronous jobs
         var jobs = 0;
@@ -415,7 +417,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
                     }
                     else if(details.type === 'editors'){
                         ++jobs;
-                        download.downloadEditor(details.val, function(){
+                        download.downloadUserEditor(details.val, function(){
                             finished();
                         });
                     }
@@ -453,7 +455,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
     }
     pcapi.init({"url": root, "version": utils.getPCAPIVersion()});
 
-    login.checkLogin(function(userId){
+    pcapi.checkLogin(function(userId){
         if(userId){
             showSyncButtons();
         }
@@ -477,22 +479,14 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
 
             var onsuccess = function(providers){
                 // If there is only one non-'local' provider login with that one
-                if(providers.length == 1 && providers[0] != 'local'){
+                if(providers.length == 1){
                     selectProvider(providers[0]);
                 }
                 else{
                     var html = [];
                     for(var i=0; i<providers.length; i++){
                         var provider = providers[i];
-                        if(provider == 'local'){
-                            html.push('<li data-role="collapsible"><a href="#" class="choose-provider">'+provider+'</a></li>');
-                            html.push('<div style="display:none;" id="login-form"><label for="login-username">Username:</label>');
-                            html.push('<input type="text" name="login-username" id="login-username" value="cobweb@cobweb.ed.ac.uk">');
-                            html.push('<input type="button" id="local-login" value="Login" data-theme="b"></div>');
-                        }
-                        else{
-                            html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
-                        }
+                        html.push('<li><a href="#" class="choose-provider">'+provider+'</a></li>');
                     }
                     $("#list-providers").html(html.join(""));
                     $("#list-providers").listview('refresh');
@@ -502,12 +496,13 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
 
             var onerror = function(){
                 console.debug('Error querying the providers');
+                utils.inform('Problem with login');
             };
 
             getProviders(onsuccess, onerror);
         }
         else {
-            login.logoutCloud();
+            pcapi.logoutCloud();
             hideSyncButtons();
         }
     });
@@ -539,6 +534,124 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './login', './upload',
             });
         }
     );
+
+    $(document).on(
+        'vclick',
+        '.download-public-forms',
+        function(){
+            $('body').one('_pageshow', '#editors-list-page', function(){
+
+                // Returns a promise that resolves in a list of active editors
+                var getActiveEditors = function(){
+                    var deferred = new $.Deferred();
+                    records.getEditors('public', function(files){
+                        var editors = [];
+                        for(var i = 0; i<files.length; i++){
+                            editors.push(files[i].name);
+                        }
+                        deferred.resolve(editors);
+                    });
+                    return deferred.promise();
+                };
+
+                // Returns a promise that resolves in a list of available editors
+                // for given userId
+                var getAvailableEditors = function(userId){
+                    var deferred = new $.Deferred();
+                    download.listEditors(
+                        userId,
+                        function(data){
+                            if(typeof(data) !== 'object'){
+                                deferred.reject({msg: 'Non json response'});
+                                return;
+                            }
+
+                            switch(data.error){
+                                case 0:
+                                    deferred.resolve(data);
+                                    break;
+                                default: // Any errors
+                                    deferred.reject(data.msg);
+                                    console.error(data.msg);
+                            }
+                        },
+                        function(err){
+                             deferred.reject(err);
+                        });
+
+                    return deferred.promise();
+                };
+
+                // Generate the html with the editors
+                var createListEditors = function(editors, active){
+                    var html = '';
+                    var checked;
+
+                    for(var i=0; i<editors.metadata.length; i++){
+                        var editorName = editors.metadata[i].replace(/\/editors\/\//g, '');
+                        checked = '';
+
+                        if(active.indexOf(editorName) > -1){
+                            checked = 'checked';
+                        }
+
+                        html += '<li>\
+                                   <div data-role="fieldcontain">\
+                                     <label for="flip-checkbox-'+ i +'">\
+                                     ' + editorName + '\
+                                     </label>\
+                                     <input data-role="flipswitch"\
+                                            name="flip-checkbox-' + i + '"\
+                                            class="editor" editor-name="'+editorName+'"\
+                                            type="checkbox" \
+                                            ' + checked + ' \
+                                      >\
+                                   </div>\
+                                 </li>';
+                    }
+
+                    $('ul#editors-list','#editors-list-page').html(html);
+                    $("ul#editors-list input[data-role='flipswitch']", '#editors-list-page').flipswitch();
+                    $('ul#editors-list', '#editors-list-page').listview('refresh');
+                };
+
+                // Call the two async promises
+                var availableEditors = getAvailableEditors(pcapi.getAnonymousUserId());
+                var activeEditors = getActiveEditors();
+
+                availableEditors.fail(function(err){
+                    utils.inform("Problem fetching public editors");
+                    console.error(err);
+                });
+
+                // When the two values are resolved
+                $.when(availableEditors, activeEditors)
+                    .done(function(available, active){
+                        createListEditors(available, active);
+                    });
+            });
+
+            $('body').pagecontainer('change', 'editors-list.html');
+        }
+    );
+
+    $(document).on(
+        'change',
+        '#editors-list .editor',
+        function(evt){
+            var $editor = $(evt.target),
+                editorName = $editor.attr('editor-name');
+
+            // Download or delete the editor from the device
+            if($editor.prop('checked')){
+                download.downloadPublicEditor(editorName);
+            }else{
+                file.deleteFile(editorName, records.getPublicEditorsDir());
+            }
+        }
+    );
+
+
     $(document).on(
         'vclick',
         '#home-content-sync',

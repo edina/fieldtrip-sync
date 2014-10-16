@@ -1,0 +1,10 @@
+{
+    "popups": {
+        "popup1":{
+            "template": "editors-list.html",
+            "data": {
+
+            }
+        }
+    }
+}

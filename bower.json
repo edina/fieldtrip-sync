@@ -4,6 +4,9 @@
     "homepage": "https://github.com/edina/fieldtrip-sync",
     "description": "Sync is a Fieldtrip Open plugin for synchronising fieldtrip-open with PCAPI (Personal Cloud API).",
     "main": "src/www/js/sync.js",
+    "dependencies": {
+        "pcapi": "0.0.0"
+    },
     "keywords": [
         "fieldtrip-open",
         "sync",

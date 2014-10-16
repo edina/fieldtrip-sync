@@ -37,6 +37,92 @@ DAMAGE.
 define(['records', 'map', 'file', 'utils', './pcapi', './login'], function(// jshint ignore:line
     records, map, file, utils, pcapi, login){
 
+    var downloadAndStoreEditor = function(userId, editor, path, callback){ // jshint ignore:line
+        callback = callback || function(){};
+
+        downloadEditor(
+            userId,
+            editor,
+            function(data){
+                file.writeToFile(
+                    {
+                        fileName: editor,
+                        data: data
+                    },
+                    path,
+                    callback
+                );
+            },
+            function(err){
+                console.error(err);
+                callback(false);
+            }
+        );
+    };
+
+    /**
+     * Download editor from cloud.
+     * @param userId User id
+     * @param editor The editor name.
+     * @param success Function will be called when editor is successfully downloaded.
+     * @param error  Function will be called when an error happen
+     */
+    var downloadEditor = function(userId, editor, success, error){ // jshint ignore:line
+        var root = pcapi.getCloudProviderUrl() + '/fs/'+ pcapi.getProvider() + '/'+ userId;
+        var editorUrl = root + "/editors/" + editor;
+
+        $.get(editorUrl)
+            .done(function(data){
+                if(typeof(data.error) === 'undefined'){
+                    utils.doCallback(success, data);
+                }
+                else{
+                    utils.doCallback(error, data);
+                }
+            })
+            .fail(function(xhr, msg){
+                utils.doCallback(error, msg);
+            });
+    };
+
+
+    /**
+     * List the editors available for an user
+     * @param userId The editor name.
+     * @param success function called after success
+     * @param error function called in case of an error
+     */
+    var listEditors = function(userId, success, error){
+        var url = pcapi.buildUserUrl(userId, 'editors');
+        console.debug(url);
+
+        $.get(url)
+         .success(function(data){
+            utils.doCallback(success, data);
+         })
+         .fail(function(xhr, msg){
+            utils.doCallback(error, msg);
+         });
+    };
+
+
+return {
+
+    listEditors: listEditors,
+
+    downloadUserEditor: function(editor){
+        var userId = pcapi.getUserId();
+        var path = records.getEditorsDir();
+        downloadAndStoreEditor(userId, editor, path);
+    },
+
+    downloadPublicEditor: function(editor){
+        var userId = pcapi.getAnonymousUserId();
+        var path = records.getPublicEditorsDir();
+
+        downloadAndStoreEditor(userId, editor, path);
+    },
+
     /**
      * Download item from cloud provider.
      * @param options:
@@ -47,62 +133,25 @@ define(['records', 'map', 'file', 'utils', './pcapi', './login'], function(// js
      *     item to have different name from the remote one
      * @param callback Function will be called when editor is successfully downloaded.
      */
-    var downloadItem = function(options, callback){
-        var userId = login.getUser().id;
+    downloadItem: function(options, callback){
+        var userId = pcapi.getUserId();
+
         var root = pcapi.getCloudProviderUrl() + '/fs/' +
             pcapi.getProvider() + '/' + userId;
-        var itemUrl = root + "/" + options.remoteDir + "/" + options.fileName;
+        var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
 
         var target;
         if(options.localFileName){
-            target = file.getFilePath(options.localDir) + '/' + options.localFileName;
+            target = file.getFilePath(options.localDir)+'/'+options.localFileName;
         }
         else{
-            target = file.getFilePath(options.localDir) + '/' + options.fileName;
+            target = file.getFilePath(options.localDir)+'/'+options.fileName;
         }
 
         file.fileTransfer(itemUrl, target, function(success){
-            callback(success);
-        });
-    };
-
-return {
-
-    /**
-     * Download editor from cloud.
-     * @param editor The editor name.
-     * @param callback Function will be called when editor is successfully downloaded.
-     */
-    downloadEditor: function(editor, callback){
-        var userId = login.getUser().id;
-        var root = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider()+'/' + userId;
-        var editorUrl = root + "/editors/" + editor;
-
-        $.ajax({
-            type: "GET",
-            url: editorUrl,
-            success: function(data){
-                if(typeof(data.error) === 'undefined'){
-                    var s = editor.lastIndexOf('/') + 1;
-                    file.writeToFile({"fileName":
-                        editor,
-                        "data": data},
-                        records.getEditorsDir(),
-                        callback
-                    );
-                }
-                else{
-                    console.error("Error returned with " + editorUrl +
-                                    " : error = " + data.error);
-                    callback(false);
-                }
-            },
-            error: function(jqXHR, status, error){
-                utils.inform('Editor Problem: ' + editor, 3000, error);
-                console.error("Error downloading editor: " + editorUrl +
-                                " : status=" + status + " : " + error);
-                callback(false);
-            },
+            if(success){
+                callback();
+            }
         });
     },
 
@@ -124,18 +173,17 @@ return {
      */
     downloadItems: function(localDir, remoteDir, callback) {
         utils.inform("Sync "+remoteDir+" ...");
-        var userId = login.getUser().id;
+
         var downloads = [];
+        var userId = pcapi.getUserId();
 
         var finished = function(success){
-            if(callback){
-                callback(success, downloads);
-            }
+            utils.doCallback(callback, success, downloads);
         };
 
         file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
-            var url = pcapi.getCloudProviderUrl() + '/'+remoteDir+'/'+pcapi.getProvider()+'/' +
-                userId +'/';
+            var url = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider() +
+                '/'+ userId +'/'+remoteDir;
 
             console.debug("Sync "+remoteDir+" with " + url);
 
@@ -143,7 +191,7 @@ return {
                 type: "GET",
                 dataType: "json",
                 url: url,
-                success: $.proxy(function(data){
+                success: $.proxy(function(data, textStatus, request){
                     if(data.error === 1 || data.metadata.length === 0){
                         // nothing to do
                         utils.inform('No editors to sync');
@@ -160,7 +208,7 @@ return {
                             // TODO work would correct filename and path
                             var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
                             var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir};
-                            downloadItem(options, function(){
+                            this.downloadItem(options, function(){
                                 ++count;
                                 downloads.push(fileName);
                                 if(count === noOfItems){
@@ -192,7 +240,7 @@ return {
         utils.inform("Sync records ...");
 
         var annotations = records.getSavedRecords();
-        var userId = login.getUser().id;
+        var userId = pcapi.getUser().id;
 
         // all locally synced records will first be deleted
         $.each(annotations, function(id, annotation){
@@ -297,7 +345,7 @@ return {
      */
     downloadRecord: function(name, callback, orgRecord){
         var rootUrl = pcapi.getCloudProviderUrl() + '/records/'+pcapi.getProvider()+'/' +
-            login.getUser().id + "/" + name;
+            pcapi.getUser().id + "/" + name;
         var recordUrl = rootUrl + "/record.json";
 
         var assetCount = 0;
@@ -365,7 +413,7 @@ return {
                         var source = rootUrl + "/" + field.val;
                         var nameEnc = encodeURI(name);
                         var fieldValEnc = encodeURI(field.val);
-                        
+
                         var target = file.getFilePath(records.getAssetsDir()) + "/" + nameEnc + "/" + fieldValEnc;
 
                         console.debug("download: " + source + " to " + target);
