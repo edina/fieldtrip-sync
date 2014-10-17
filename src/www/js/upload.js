@@ -65,7 +65,6 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             var assetCount = 0;
             var finished = function(success, msg){
                 // default values
-                success = success || true;
                 msg = msg || 'An error has occurred syncing';
 
                 --assetCount;
@@ -115,7 +114,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                             }
 
                             var fileName = field.val.substr(field.val.lastIndexOf('/') + 1);
-                            var assetUrl = pcapi.builUserdUrl(userId, "records", record.name) + '/' + fileName;
+                            var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
                             options.fileName = fileName;
 
                             setTimeout(function(){
@@ -183,12 +182,6 @@ define(['records', 'map', 'utils', './pcapi', './login'],
         var uploadCount = 0;
         $.each(annotations, function(id, annotation){
             if(!annotation.isSynced){
-                $('#' + id + ' .ui-block-a').removeClass(
-                    'saved-records-list-synced-false');
-                $('#' + id + ' .ui-block-a').addClass(
-                    'saved-records-list-syncing');
-
-                ++uploadCount;
                 var userId;
                 switch(annotation.editorGroup){
                     case 'public':
@@ -200,10 +193,16 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                 }
 
                 if(!userId){
-                    utils.inform('No '+ annotation.editorGroup +' user found');
+                    console.debug('No user authenticated for this group: ' + annotation.editorGroup);
                     return;
                 }
 
+                $('#' + id + ' .ui-block-a').removeClass(
+                    'saved-records-list-synced-false');
+                $('#' + id + ' .ui-block-a').addClass(
+                    'saved-records-list-syncing');
+
+                ++uploadCount;
                 createRemoteRecord(id, userId, annotation.record, function(success){
                     --uploadCount;
                     $('#' + id + ' .ui-block-a').removeClass(
