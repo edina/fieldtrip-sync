@@ -97,10 +97,24 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
      * Set up records page for syncing.
      */
     var recordsPage = function(){
+
         /**
          * Show upload and sync button on records page header
          */
         var refreshButtonsState = function(state){
+            var annotations = records.getSavedRecords();
+
+            var anyAnotation = function(group){
+                for(var key in annotations){
+                    if(annotations.hasOwnProperty(key)){
+                        if(annotations[key].editorGroup === group){
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            };
+
             switch(state){
                 case 'loggedin':
                     $('#saved-records-page-header-login-sync')
@@ -112,7 +126,12 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
                     $('#saved-records-page-header-login-sync')
                         .removeClass('cloud-logout')
                         .addClass('cloud-login');
-                    $('#saved-records-page-header-upload').hide();
+                    if(anyAnotation(records.EDITOR_GROUP.PUBLIC)){
+                        $('#saved-records-page-header-upload').show();
+                    }
+                    else{
+                        $('#saved-records-page-header-upload').hide();
+                    }
                 break;
             }
         };
