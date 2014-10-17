@@ -417,9 +417,13 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
                     }
                     else if(details.type === 'editors'){
                         ++jobs;
-                        download.downloadUserEditor(details.val, function(){
-                            finished();
-                        });
+                        download.downloadEditor(
+                            records.EDITOR_GROUP.PRIVATE,
+                            details.val,
+                            function(){
+                                finished();
+                            }
+                        );
                     }
                     else{
                         console.warn("No such record type:" + details.type);
@@ -544,7 +548,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
                 // Returns a promise that resolves in a list of active editors
                 var getActiveEditors = function(){
                     var deferred = new $.Deferred();
-                    records.getEditors('public', function(files){
+                    records.getEditors(records.EDITOR_GROUP.PUBLIC, function(files){
                         var editors = [];
                         for(var i = 0; i<files.length; i++){
                             editors.push(files[i].name);
@@ -644,9 +648,9 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
 
             // Download or delete the editor from the device
             if($editor.prop('checked')){
-                download.downloadPublicEditor(editorName);
+                download.downloadEditor(records.EDITOR_GROUP.PUBLIC, editorName);
             }else{
-                file.deleteFile(editorName, records.getPublicEditorsDir());
+                file.deleteFile(editorName, records.getEditorsDir(records.EDITOR_GROUP.PUBLIC));
             }
         }
     );

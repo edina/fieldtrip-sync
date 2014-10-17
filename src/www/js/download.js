@@ -110,15 +110,19 @@ return {
 
     listEditors: listEditors,
 
-    downloadUserEditor: function(editor){
-        var userId = pcapi.getUserId();
-        var path = records.getEditorsDir();
-        downloadAndStoreEditor(userId, editor, path);
-    },
+    downloadEditor: function(type, editor){
+        var userId;
+        var path;
 
-    downloadPublicEditor: function(editor){
-        var userId = pcapi.getAnonymousUserId();
-        var path = records.getPublicEditorsDir();
+        switch(type){
+            case records.EDITOR_GROUP.PUBLIC:
+                userId = pcapi.getAnonymousUserId();
+                path = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+            break;
+            default:
+                userId = pcapi.getUserId();
+                path = records.getEditorsDir();
+        }
 
         downloadAndStoreEditor(userId, editor, path);
     },
