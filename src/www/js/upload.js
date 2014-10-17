@@ -44,8 +44,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
      * @param record Record object to create remotely.
      * @param callback
      */
-    var createRemoteRecord = function(id, record, callback) {
-        var userId = pcapi.getUserId();
+    var createRemoteRecord = function(id, userId, record, callback) {
         var cloudProviderUrl = pcapi.getCloudProviderUrl();
 
         // clone record for remote copy
@@ -84,11 +83,13 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             };
 
             //console.debug("Post: " + recordDir);
-            pcapi.saveItem("records", dropboxRecord, function(status, data){
+            pcapi.saveItem(userId, "records", dropboxRecord, function(status, data){
                 if(status){
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
+                    name = decodeURIComponent(name);
+
                     if(record.name !== name){
                         // name has been changed by api
                         console.debug(record.name + " renamed to " + name);
@@ -98,7 +99,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
 
                     }
 
-                    // create any asserts associated with record
+                    // create any assets associated with record
                     $.each(record.properties.fields, function(i, field){
                         var type = records.typeFromId(field.id);
                         if(records.isAsset(field, type)){
@@ -114,7 +115,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                             }
 
                             var fileName = field.val.substr(field.val.lastIndexOf('/') + 1);
-                            var assetUrl = pcapi.buildUrl("records", record.name) + '/' + fileName;
+                            var assetUrl = pcapi.builUserdUrl(userId, "records", record.name) + '/' + fileName;
                             options.fileName = fileName;
 
                             setTimeout(function(){
@@ -172,13 +173,11 @@ define(['records', 'map', 'utils', './pcapi', './login'],
         }
     };
 
-var _this = {
-
     /**
      * Upload unsynced records.
      * @param complete Function executed when upload is complete.
      */
-    uploadRecords: function(complete) {
+    var uploadRecords = function(complete) {
         // do upload sync
         var annotations = records.getSavedRecords();
         var uploadCount = 0;
@@ -190,7 +189,22 @@ var _this = {
                     'saved-records-list-syncing');
 
                 ++uploadCount;
-                createRemoteRecord(id, annotation.record, function(success){
+                var userId;
+                switch(annotation.editorGroup){
+                    case 'public':
+                        userId = pcapi.getAnonymousUserId();
+                    break;
+                    default:
+                        userId = pcapi.getUserId();
+
+                }
+
+                if(!userId){
+                    utils.inform('No '+ annotation.editorGroup +' user found');
+                    return;
+                }
+
+                createRemoteRecord(id, userId, annotation.record, function(success){
                     --uploadCount;
                     $('#' + id + ' .ui-block-a').removeClass(
                         'saved-records-list-syncing');
@@ -217,9 +231,10 @@ var _this = {
             complete();
             utils.inform('Nothing to upload');
         }
-    },
-};
+    };
 
-return _this;
+    return {
+        uploadRecords: uploadRecords
+    };
 
 });

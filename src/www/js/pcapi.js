@@ -595,16 +595,16 @@ define(['config'], function(config){
          * @param item, could be either editor or record
          * @param callback function after fetching the items
          */
-        saveItem: function(remoteDir, item, callback){
+        saveItem: function(userId, remoteDir, item, callback){
 
             var url, data;
             if(remoteDir === "records"){
                 data = JSON.stringify(item, undefined, 2);
-                url = this.buildUrl(remoteDir, item.name);
+                url = this.buildUserUrl(userId, remoteDir, item.name);
             }
             else if(remoteDir === "editors"){
                 data = item.editor.join("");
-                url = this.buildUrl(remoteDir, item.name+".edtr");
+                url = this.buildUserUrl(userId, remoteDir, item.name+".edtr");
             }
 
             console.debug("Post item to "+remoteDir+" with " + url);
