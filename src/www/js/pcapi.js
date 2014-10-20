@@ -647,11 +647,18 @@ define(['config'], function(config){
                 cache: false,
                 url: url,
                 success: function(data){
-                    if(data.error == 1){
-                        callback(false);
+                    if(typeof(data) === 'object'){
+                        if(data.error === 0){
+                          callback(true, data);
+                        }
+                        else{
+                          console.debug(data.msg);
+                          callback(false);
+                        }
                     }
                     else{
-                        callback(true, data);
+                        console.debug('Non json response');
+                        callback(false);
                     }
                 },
                 error: function(jqXHR, status, error){
