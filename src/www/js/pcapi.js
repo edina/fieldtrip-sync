@@ -420,6 +420,38 @@ define(['config'], function(config){
         },
 
         /**
+         * Fetch an item on the cloud
+         * @param options.remoteDir remote directory
+         * @param options.item the file
+         * @param callback function after fetching the items
+         */
+        getFSItem: function(options, callback){
+            var url = this.buildFSUrl(options.remoteDir, options.item);
+
+            console.debug("Get item "+options.item+" of "+options.remoteDir+" with " + url);
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: url,
+                success: function(data){
+                    if(data.error == 1){
+                        callback(false);
+                    }
+                    else{
+                        callback(true, data);
+                    }
+                },
+                error: function(jqXHR, status, error){
+                    console.error("Problem with " + url + " : status=" +
+                                  status + " : " + error);
+                    callback(false);
+                },
+                cache: false
+            });
+        },
+
+        /**
          * Fetch all the records|editors on the cloud
          * @param options.remoteDir remote directory [records|editors]
          * @param options.item get a file from PCAPI
