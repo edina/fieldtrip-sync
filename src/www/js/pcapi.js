@@ -644,21 +644,16 @@ define(['config'], function(config){
             $.ajax({
                 type: "POST",
                 data: data,
+                dataType: "json",
                 cache: false,
                 url: url,
-                success: function(data){
-                    if(typeof(data) === 'object'){
-                        if(data.error === 0){
-                          callback(true, data);
-                        }
-                        else{
-                          console.debug(data.msg);
-                          callback(false);
-                        }
+                success: function(res){
+                    if(res.error === 0){
+                      callback(true, res);
                     }
                     else{
-                        console.debug('Non json response');
-                        callback(false);
+                      console.debug(res.msg);
+                      callback(false);
                     }
                 },
                 error: function(jqXHR, status, error){

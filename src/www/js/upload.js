@@ -82,12 +82,13 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             };
 
             //console.debug("Post: " + recordDir);
-            pcapi.saveItem(userId, "records", dropboxRecord, function(status, data){
+            pcapi.saveItem(userId, "records", record, function(status, data){
                 if(status){
+                    console.debug(data);
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
-                    name = decodeURIComponent(name);
+                    //name = decodeURIComponent(name);
 
                     if(record.name !== name){
                         // name has been changed by api
@@ -135,6 +136,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                                             }
                                         }catch(e){
                                             console.debug('Non json response');
+                                            console.debug(result);
                                             success = false;
                                         }finally{
                                             finished(success);
