@@ -152,9 +152,9 @@ return {
             target = file.getFilePath(options.localDir)+'/'+options.fileName;
         }
 
-        file.fileTransfer(itemUrl, target, function(success){
+        file.fileTransfer(itemUrl, target, function(success, entry){
             if(success){
-                callback();
+                callback(entry);
             }
         });
     },
@@ -204,15 +204,36 @@ return {
                     else{
                         var count = 0;
                         var noOfItems = data.metadata.length;
+                        var noOfEditors = 0;
 
                         //utils.printObj(data.metadata);
+                        var editorClassObj = {};
 
                         // do sync
                         $.each(data.metadata, $.proxy(function(i, item){
                             // TODO work would correct filename and path
                             var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
                             var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir};
-                            this.downloadItem(options, function(){
+                            this.downloadItem(options, function(entry){
+
+                                //read the class for the editor button and store it to session storage
+                                //read the file and check for class for the button as hidden value
+                                if(entry.name.indexOf(".edtr") > -1){
+                                    noOfEditors++;
+                                    entry.file(function(file) {
+                                        var reader = new FileReader();
+
+                                        reader.onloadend = function(e) {
+                                            editorClassObj[entry.name] = $('#form-button', $(this.result)).val();
+                                            localStorage.setItem("editorsClasses", JSON.stringify(editorClassObj));
+                                        };
+
+                                        reader.readAsText(file);
+                                    }, function(e){
+                                        console.log(e);
+                                    });
+                                }
+
                                 ++count;
                                 downloads.push(fileName);
                                 if(count === noOfItems){
