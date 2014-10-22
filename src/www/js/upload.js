@@ -36,8 +36,8 @@ DAMAGE.
 /**
  * Module deals with uploading records to Personal Cloud.
  */
-define(['records', 'map', 'utils', './pcapi', './login'],
-       function(records, map, utils, pcapi, login){// jshint ignore:line
+define(['records', 'map', 'utils', './pcapi'],
+       function(records, map, utils, pcapi){// jshint ignore:line
 
     /**
      * Create remote record.

@@ -34,8 +34,8 @@ DAMAGE.
 /**
  * Module deals with download records/forms from the Personal Cloud.
  */
-define(['records', 'map', 'file', 'utils', './pcapi', './login'], function(// jshint ignore:line
-    records, map, file, utils, pcapi, login){
+define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
+    records, map, file, utils, pcapi){
 
     var downloadAndStoreEditor = function(userId, editor, path, callback){ // jshint ignore:line
         callback = callback || function(){};
