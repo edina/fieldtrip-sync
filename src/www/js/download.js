@@ -204,7 +204,6 @@ return {
                     else{
                         var count = 0;
                         var noOfItems = data.metadata.length;
-                        var noOfEditors = 0;
 
                         //utils.printObj(data.metadata);
                         var editorClassObj = {};
@@ -219,13 +218,15 @@ return {
                                 //read the class for the editor button and store it to session storage
                                 //read the file and check for class for the button as hidden value
                                 if(entry.name.indexOf(".edtr") > -1){
-                                    noOfEditors++;
                                     entry.file(function(file) {
                                         var reader = new FileReader();
 
                                         reader.onloadend = function(e) {
-                                            editorClassObj[entry.name] = $('#form-button', $(this.result)).val();
-                                            localStorage.setItem("editorsClasses", JSON.stringify(editorClassObj));
+                                            var result = $('#dtree-class-name', $(this.result)).text();
+                                            if(result !== ""){
+                                                editorClassObj[entry.name] = result;
+                                                localStorage.setItem("editorsClasses", JSON.stringify(editorClassObj));
+                                            }
                                         };
 
                                         reader.readAsText(file);
