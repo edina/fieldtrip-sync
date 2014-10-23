@@ -625,7 +625,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
                                      </label>\
                                      <input data-role="flipswitch"\
                                             name="flip-checkbox-' + i + '"\
-                                            class="editor" editor-name="'+editorName+'"\
+                                            class="editor" data-editor-name="'+editorName+'"\
                                             type="checkbox" \
                                             ' + checked + ' \
                                       >\
@@ -663,7 +663,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
         '#editors-list .editor',
         function(evt){
             var $editor = $(evt.target),
-                editorName = $editor.attr('editor-name');
+                editorName = $editor.attr('data-editor-name');
 
             // Download or delete the editor from the device
             if($editor.prop('checked')){

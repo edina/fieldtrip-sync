@@ -222,11 +222,7 @@ return {
                                         var reader = new FileReader();
 
                                         reader.onloadend = function(e) {
-                                            var result = $('#dtree-class-name', $(this.result)).text();
-                                            if(result !== ""){
-                                                editorClassObj[entry.name] = result;
-                                                localStorage.setItem("editorsClasses", JSON.stringify(editorClassObj));
-                                            }
+                                            records.setEditorClass(entry.name, this.result, editorClassObj);
                                         };
 
                                         reader.readAsText(file);
