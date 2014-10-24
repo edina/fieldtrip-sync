@@ -351,9 +351,16 @@ return {
             dataType: "json",
             url: recordUrl,
             cache: false,
-            success: $.proxy(function(record){
-                //utils.printObj(record);
+            success: $.proxy(function(data){
 
+                // If it has an error it's not a record
+                if(data.error !== undefined){
+                    console.error(data.msg);
+                    finished({}, false);
+                    return;
+                }
+
+                var record = data;
                 // convert coordinates to national grid
                 record.geometry.coordinates = map.pointToInternal(record.geometry.coordinates);
 
