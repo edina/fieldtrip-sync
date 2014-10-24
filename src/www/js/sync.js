@@ -611,7 +611,7 @@ define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './d
                     var checked;
 
                     for(var i=0; i<editors.metadata.length; i++){
-                        var editorName = editors.metadata[i].replace(/\/editors\/\//g, '');
+                        var editorName = editors.metadata[i].replace(/\/editors\/\/?/g, '');
                         checked = '';
 
                         if(active.indexOf(editorName) > -1){

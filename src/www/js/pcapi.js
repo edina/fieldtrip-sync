@@ -263,8 +263,8 @@ define(['config'], function(config){
         buildUserUrl: function(userId, category, path){
             path = path || '';
 
-            return this.getCloudProviderUrl() + '/'+ category + '/' +
-                   this.getProvider() + '/' + userId + '/' + path;
+            return this.getCloudProviderUrl() + '/fs/' +
+                   this.getProvider() + '/' + userId + '/' + category + '/' + path;
         },
 
         /**
@@ -427,6 +427,9 @@ define(['config'], function(config){
          */
         getFSItem: function(options, callback){
             var url = this.buildFSUrl(options.remoteDir, options.item);
+            if(options.userId){
+                url = this.buildUserUrl(options.userId, options.remoteDir, options.item);
+            }
 
             console.debug("Get item "+options.item+" of "+options.remoteDir+" with " + url);
 

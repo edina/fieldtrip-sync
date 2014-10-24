@@ -37,78 +37,30 @@ DAMAGE.
 define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
     records, map, file, utils, pcapi){
 
-    var downloadAndStoreEditor = function(userId, editor, path, callback){ // jshint ignore:line
-        callback = callback || function(){};
-
-        downloadEditor(
-            userId,
-            editor,
-            function(data){
-                file.writeToFile(
-                    {
-                        fileName: editor,
-                        data: data
-                    },
-                    path,
-                    callback
-                );
-            },
-            function(err){
-                console.error(err);
-                callback(false);
-            }
-        );
-    };
-
     /**
-     * Download editor from cloud.
-     * @param userId User id
-     * @param editor The editor name.
-     * @param success Function will be called when editor is successfully downloaded.
-     * @param error  Function will be called when an error happen
+     * set class name for editors on localstorage
+     * @param FileEntry entry
+     * @param group that holds all the editors class names
      */
-    var downloadEditor = function(userId, editor, success, error){ // jshint ignore:line
-        var root = pcapi.getCloudProviderUrl() + '/fs/'+ pcapi.getProvider() + '/'+ userId;
-        var editorUrl = root + "/editors/" + editor;
+    var setClassNames = function(entry, group){
+        //read the class for the editor button and store it to session storage
+        //read the file and check for class for the button as hidden value
+        if(entry.name.indexOf(".edtr") > -1){
+            entry.file(function(file) {
+                var reader = new FileReader();
 
-        $.get(editorUrl)
-            .done(function(data){
-                if(typeof(data.error) === 'undefined'){
-                    utils.doCallback(success, data);
-                }
-                else{
-                    utils.doCallback(error, data);
-                }
-            })
-            .fail(function(xhr, msg){
-                utils.doCallback(error, msg);
+                reader.onloadend = function(e) {
+                    records.setEditorClass(entry.name, this.result, group);
+                };
+
+                reader.readAsText(file);
+            }, function(e){
+                console.log(e);
             });
+        }
     };
-
-
-    /**
-     * List the editors available for an user
-     * @param userId The editor name.
-     * @param success function called after success
-     * @param error function called in case of an error
-     */
-    var listEditors = function(userId, success, error){
-        var url = pcapi.buildUserUrl(userId, 'editors');
-        console.debug(url);
-
-        $.get(url)
-         .success(function(data){
-            utils.doCallback(success, data);
-         })
-         .fail(function(xhr, msg){
-            utils.doCallback(error, msg);
-         });
-    };
-
 
 return {
-
-    listEditors: listEditors,
 
     downloadEditor: function(type, editor){
         var userId;
@@ -124,38 +76,10 @@ return {
                 path = records.getEditorsDir();
         }
 
-        downloadAndStoreEditor(userId, editor, path);
-    },
-
-    /**
-     * Download item from cloud provider.
-     * @param options:
-     *   fileName the name of item
-     *   remoteDir the name of the directory on the server
-     *   localDir the local directory where the item will be downloaded.
-     *   localFileName is the local filename, use it when you want the downloaded
-     *     item to have different name from the remote one
-     * @param callback Function will be called when editor is successfully downloaded.
-     */
-    downloadItem: function(options, callback){
-        var userId = pcapi.getUserId();
-
-        var root = pcapi.getCloudProviderUrl() + '/fs/' +
-            pcapi.getProvider() + '/' + userId;
-        var itemUrl = root + "/"+ options.remoteDir +"/" + options.fileName;
-
-        var target;
-        if(options.localFileName){
-            target = file.getFilePath(options.localDir)+'/'+options.localFileName;
-        }
-        else{
-            target = file.getFilePath(options.localDir)+'/'+options.fileName;
-        }
-
-        file.fileTransfer(itemUrl, target, function(success, entry){
-            if(success){
-                callback(entry);
-            }
+        var fileName = editor.substring(editor.lastIndexOf('/') + 1, editor.length);
+        var options = {"userId": userId, "fileName": editor, "remoteDir": "editors", "localDir": path, "targetName": editor};
+        this.downloadItem(options, function(entry){
+            setClassNames(entry, type);
         });
     },
 
@@ -164,6 +88,7 @@ return {
      * @param callback Function executed after sync is complete.
      */
     downloadEditors: function(callback) {
+        console.log(records.getEditorsDir());
         this.downloadItems(records.getEditorsDir(),'editors', function(success){
             callback(success);
         });
@@ -179,24 +104,22 @@ return {
         utils.inform("Sync "+remoteDir+" ...");
 
         var downloads = [];
-        var userId = pcapi.getUserId();
+        //var userId = pcapi.getUserId();
 
         var finished = function(success){
             utils.doCallback(callback, success, downloads);
         };
 
         file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
-            var url = pcapi.getCloudProviderUrl() + '/fs/'+pcapi.getProvider() +
-                '/'+ userId +'/'+remoteDir;
 
-            console.debug("Sync "+remoteDir+" with " + url);
-
-            $.ajax({
-                type: "GET",
-                dataType: "json",
-                url: url,
-                success: $.proxy(function(data, textStatus, request){
-                    if(data.error === 1 || data.metadata.length === 0){
+            pcapi.getFSItems(remoteDir, $.proxy(function(status, data){
+                if(status === false){
+                    // nothing to do
+                    utils.inform('No editors to sync');
+                    finished(true);
+                }
+                else{
+                    if(data.metadata.length ===0){
                         // nothing to do
                         utils.inform('No editors to sync');
                         finished(true);
@@ -212,24 +135,10 @@ return {
                         $.each(data.metadata, $.proxy(function(i, item){
                             // TODO work would correct filename and path
                             var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
-                            var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir};
+                            var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
                             this.downloadItem(options, function(entry){
 
-                                //read the class for the editor button and store it to session storage
-                                //read the file and check for class for the button as hidden value
-                                if(entry.name.indexOf(".edtr") > -1){
-                                    entry.file(function(file) {
-                                        var reader = new FileReader();
-
-                                        reader.onloadend = function(e) {
-                                            records.setEditorClass(entry.name, this.result, editorClassObj);
-                                        };
-
-                                        reader.readAsText(file);
-                                    }, function(e){
-                                        console.log(e);
-                                    });
-                                }
+                                setClassNames(entry, records.EDITOR_GROUP.PRIVATE);
 
                                 ++count;
                                 downloads.push(fileName);
@@ -241,15 +150,36 @@ return {
                             //utils.printObj(data);
                         }, this));
                     }
-                }, this),
-                error: function(jqXHR, status, error){
-                    console.error("Problem with " + url + " : status=" +
-                                  status + " : " + error);
-                    finished(false);
-                },
-                cache: false
-            });
+                }
+            }, this));
         }, this));
+    },
+
+    /**
+     * Download item from cloud provider.
+     * @param options:
+     *   fileName the name of item
+     *   remoteDir the name of the directory on the server
+     *   localDir the local directory where the item will be downloaded.
+     *   localFileName is the local filename, use it when you want the downloaded
+     *     item to have different name from the remote one
+     *   targetName the name with which the file will be stored on the phone
+     * @param callback Function will be called when editor is successfully downloaded.
+     */
+    downloadItem: function(options, callback){
+        var itemUrl = pcapi.buildFSUrl(options.remoteDir, options.fileName);
+        //if there's a userId then change the userID
+        if(options.userId){
+            itemUrl = pcapi.buildUserUrl(options.userId, options.remoteDir, options.fileName);
+        }
+
+        var target = file.getFilePath(options.localDir)+'/'+options.targetName;
+
+        file.fileTransfer(itemUrl, target, function(success, entry){
+            if(success){
+                callback(entry);
+            }
+        });
     },
 
     /**
@@ -476,6 +406,25 @@ return {
                 finished(undefined, false);
             }
         });
+    },
+
+    /**
+     * List the editors available for an user
+     * @param userId The editor name.
+     * @param success function called after success
+     * @param error function called in case of an error
+     */
+    listEditors: function(userId, success, error){
+        var url = pcapi.buildUserUrl(userId, 'editors');
+        console.debug(url);
+
+        $.get(url)
+         .success(function(data){
+            utils.doCallback(success, data);
+         })
+         .fail(function(xhr, msg){
+            utils.doCallback(error, msg);
+         });
     }
 };
 
