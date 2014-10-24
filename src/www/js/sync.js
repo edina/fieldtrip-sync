@@ -40,7 +40,6 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
      * Set up buttons according to whether user if logged in.
      */
     var checkLogin = function(){
-        console.debug('check-login');
         if(pcapi.getUserId()){
             showSyncButtons();
         }
@@ -483,9 +482,6 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
             showSyncButtons();
         }
     });
-
-    // listen on home page
-    $(document).on('_pageshow', '#home-page', checkLogin);
 
     // listen on saved records page
     $(document).on('_pageshow', '#saved-records-page', recordsPage);
