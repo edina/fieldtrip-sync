@@ -263,8 +263,8 @@ define(['config'], function(config){
         buildUserUrl: function(userId, category, path){
             path = path || '';
 
-            return this.getCloudProviderUrl() + '/fs/' +
-                   this.getProvider() + '/' + userId + '/' + category + '/' + path;
+            return this.getCloudProviderUrl() + '/' + category + '/' +
+                   this.getProvider() + '/' + userId + '/' + path;
         },
 
         /**

@@ -33,8 +33,8 @@ DAMAGE.
 
 /* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'ui', 'utils', './pcapi', './upload', './download', 'file'], function( // jshint ignore:line
-    records, map, settings, ui, utils, pcapi, upload, download, file){
+define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './download', 'file'], function( // jshint ignore:line
+    records, map, settings, utils, pcapi, upload, download, file){
 
     /**
      * Set up buttons according to whether user if logged in.
