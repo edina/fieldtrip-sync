@@ -50,6 +50,47 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
     };
 
     /*
+     * Insert into the DOM an html list with the editors each one with a flipswitch
+     * that display if it is downloaded or not
+     *
+     * @param editors a list of editors from the pcapi
+     * @param active an array with the names of the active editors
+     * @param a dom selector (usually a ul element)
+     *
+     */
+    var createListEditors = function(editors, active, domElement){
+        var html = '';
+        var checked;
+
+        for(var i=0; i<editors.metadata.length; i++){
+            var editorName = editors.metadata[i].replace(/\/editors\/\/?/g, '');
+            checked = '';
+
+            if(active.indexOf(editorName) > -1){
+                checked = 'checked';
+            }
+
+            html += '<li>\
+                       <div data-role="fieldcontain">\
+                         <label for="flip-checkbox-'+ i +'">\
+                         ' + editorName + '\
+                         </label>\
+                         <input data-role="flipswitch"\
+                                name="flip-checkbox-' + i + '"\
+                                class="editor" data-editor-name="'+editorName+'"\
+                                type="checkbox" \
+                                ' + checked + ' \
+                          >\
+                       </div>\
+                     </li>';
+        }
+
+        $(domElement).html(html);
+        $('input[data-role="flipswitch"]', domElement).flipswitch();
+        $(domElement).listview('refresh');
+    };
+
+    /*
      * Get the list of providers available for the app
      * @param onsuccess a success callback where to pass the list of providers
      * @param onerror an error callback
@@ -564,83 +605,9 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
         function(){
             $('body').one('_pageshow', '#editors-list-page', function(){
 
-                // Returns a promise that resolves in a list of active editors
-                var getActiveEditors = function(){
-                    var deferred = new $.Deferred();
-                    records.getEditors(records.EDITOR_GROUP.PUBLIC, function(files){
-                        var editors = [];
-                        for(var i = 0; i<files.length; i++){
-                            editors.push(files[i].name);
-                        }
-                        deferred.resolve(editors);
-                    });
-                    return deferred.promise();
-                };
-
-                // Returns a promise that resolves in a list of available editors
-                // for given userId
-                var getAvailableEditors = function(userId){
-                    var deferred = new $.Deferred();
-                    download.listEditors(
-                        userId,
-                        function(data){
-                            if(typeof(data) !== 'object'){
-                                deferred.reject({msg: 'Non json response'});
-                                return;
-                            }
-
-                            switch(data.error){
-                                case 0:
-                                    deferred.resolve(data);
-                                    break;
-                                default: // Any errors
-                                    deferred.reject(data.msg);
-                                    console.error(data.msg);
-                            }
-                        },
-                        function(err){
-                             deferred.reject(err);
-                        });
-
-                    return deferred.promise();
-                };
-
-                // Generate the html with the editors
-                var createListEditors = function(editors, active){
-                    var html = '';
-                    var checked;
-
-                    for(var i=0; i<editors.metadata.length; i++){
-                        var editorName = editors.metadata[i].replace(/\/editors\/\/?/g, '');
-                        checked = '';
-
-                        if(active.indexOf(editorName) > -1){
-                            checked = 'checked';
-                        }
-
-                        html += '<li>\
-                                   <div data-role="fieldcontain">\
-                                     <label for="flip-checkbox-'+ i +'">\
-                                     ' + editorName + '\
-                                     </label>\
-                                     <input data-role="flipswitch"\
-                                            name="flip-checkbox-' + i + '"\
-                                            class="editor" data-editor-name="'+editorName+'"\
-                                            type="checkbox" \
-                                            ' + checked + ' \
-                                      >\
-                                   </div>\
-                                 </li>';
-                    }
-
-                    $('ul#editors-list','#editors-list-page').html(html);
-                    $("ul#editors-list input[data-role='flipswitch']", '#editors-list-page').flipswitch();
-                    $('ul#editors-list', '#editors-list-page').listview('refresh');
-                };
-
-                // Call the two async promises
-                var availableEditors = getAvailableEditors(pcapi.getAnonymousUserId());
-                var activeEditors = getActiveEditors();
+                // Request the active and available editors
+                var availableEditors = download.listEditorsPromise(pcapi.getAnonymousUserId());
+                var activeEditors = records.getActiveEditors(records.EDITOR_GROUP.PUBLIC);
 
                 availableEditors.fail(function(err){
                     utils.inform("Problem fetching public editors");
@@ -650,7 +617,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                 // When the two values are resolved
                 $.when(availableEditors, activeEditors)
                     .done(function(available, active){
-                        createListEditors(available, active);
+                        createListEditors(available, active, '#editors-list-page ul#editors-list');
                     });
             });
 

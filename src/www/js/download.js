@@ -425,6 +425,38 @@ return {
          .fail(function(xhr, msg){
             utils.doCallback(error, msg);
          });
+    },
+
+    /**
+     * Wraps the listEditor function as a promise
+     *
+     * @param userId
+     * @return a promise that resolves in a list of available editors for given userId
+     */
+    listEditorsPromise: function(userId){
+        var deferred = new $.Deferred();
+        this.listEditors(
+            userId,
+            function(data){
+                if(typeof(data) !== 'object'){
+                    deferred.reject({msg: 'Non json response'});
+                    return;
+                }
+
+                switch(data.error){
+                    case 0:
+                        deferred.resolve(data);
+                        break;
+                    default: // Any errors
+                        deferred.reject(data.msg);
+                        console.error(data.msg);
+                }
+            },
+            function(err){
+                 deferred.reject(err);
+            });
+
+        return deferred.promise();
     }
 };
 
