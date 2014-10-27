@@ -47,16 +47,18 @@ define(['records', 'map', 'utils', './pcapi'],
     var createRemoteRecord = function(id, userId, record, callback) {
         var cloudProviderUrl = pcapi.getCloudProviderUrl();
 
-        // clone record for remote copy
-        var dropboxRecord = jQuery.extend(true, {}, record);
+        // clone the record for preprocessing it before upload it
+        // note that original record is used for uploading the assets because
+        // contains the fullPath to them
+        var processedRecord = jQuery.extend(true, {}, record);
 
-        if( typeof(dropboxRecord.geometry) === 'object' &&
-            dropboxRecord.geometry.coordinates !== undefined){
+        if( typeof(processedRecord.geometry) === 'object' &&
+            processedRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
-            dropboxRecord.geometry.coordinates = map.pointToExternal(dropboxRecord.geometry.coordinates);
+            processedRecord.geometry.coordinates = map.pointToExternal(processedRecord.geometry.coordinates);
 
             // convert asset URLs to simple filename
-            $.each(dropboxRecord.properties.fields, function(i, field){
+            $.each(processedRecord.properties.fields, function(i, field){
                 if(field.val && records.isAsset(field)){
                     field.val = field.val.substr(field.val.lastIndexOf('/') + 1);
                 }
@@ -82,7 +84,7 @@ define(['records', 'map', 'utils', './pcapi'],
             };
 
             //console.debug("Post: " + recordDir);
-            pcapi.saveItem(userId, "records", record, function(status, data){
+            pcapi.saveItem(userId, "records", processedRecord, function(status, data){
                 if(status){
                     console.debug(data);
                     // check if new record name

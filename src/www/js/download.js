@@ -110,7 +110,7 @@ return {
             utils.doCallback(callback, success, downloads);
         };
 
-        file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
+        file.deleteAllFilesFromDir(localDir, $.proxy(function(){
 
             pcapi.getFSItems(remoteDir, $.proxy(function(status, data){
                 if(status === false){
@@ -351,9 +351,16 @@ return {
             dataType: "json",
             url: recordUrl,
             cache: false,
-            success: $.proxy(function(record){
-                //utils.printObj(record);
+            success: $.proxy(function(data){
 
+                // If it has an error it's not a record
+                if(data.error !== undefined){
+                    console.error(data.msg);
+                    finished({}, false);
+                    return;
+                }
+
+                var record = data;
                 // convert coordinates to national grid
                 record.geometry.coordinates = map.pointToInternal(record.geometry.coordinates);
 
@@ -427,6 +434,38 @@ return {
          .fail(function(xhr, msg){
             utils.doCallback(error, msg);
          });
+    },
+
+    /**
+     * Wraps the listEditor function as a promise
+     *
+     * @param userId
+     * @return a promise that resolves in a list of available editors for given userId
+     */
+    listEditorsPromise: function(userId){
+        var deferred = new $.Deferred();
+        this.listEditors(
+            userId,
+            function(data){
+                if(typeof(data) !== 'object'){
+                    deferred.reject({msg: 'Non json response'});
+                    return;
+                }
+
+                switch(data.error){
+                    case 0:
+                        deferred.resolve(data);
+                        break;
+                    default: // Any errors
+                        deferred.reject(data.msg);
+                        console.error(data.msg);
+                }
+            },
+            function(err){
+                 deferred.reject(err);
+            });
+
+        return deferred.promise();
     }
 };
 
