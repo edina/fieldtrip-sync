@@ -110,7 +110,7 @@ return {
             utils.doCallback(callback, success, downloads);
         };
 
-        file.deleteAllFilesFromDir(localDir, remoteDir, $.proxy(function(){
+        file.deleteAllFilesFromDir(localDir, $.proxy(function(){
 
             pcapi.getFSItems(remoteDir, $.proxy(function(status, data){
                 if(status === false){
