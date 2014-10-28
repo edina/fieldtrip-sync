@@ -5,7 +5,7 @@
     "description": "Sync is a Fieldtrip Open plugin for synchronising fieldtrip-open with PCAPI (Personal Cloud API).",
     "main": "src/www/js/sync.js",
     "dependencies": {
-        "pcapi": "0.0.0"
+        "pcapi": "0.0.1"
     },
     "keywords": [
         "fieldtrip-open",
