@@ -361,8 +361,10 @@ return {
                 }
 
                 var record = data;
+
                 // convert coordinates to national grid
-                record.geometry.coordinates = map.pointToInternal(record.geometry.coordinates);
+                var coords = map.pointToInternal(record.geometry.coordinates);
+                record.geometry.coordinates = [coords.lon, coords.lat];
 
                 //  fetch assets and convert URLs
                 $.each(record.properties.fields, $.proxy(function(i, field){

@@ -55,7 +55,8 @@ define(['records', 'map', 'utils', './pcapi'],
         if( typeof(processedRecord.geometry) === 'object' &&
             processedRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
-            processedRecord.geometry.coordinates = map.pointToExternal(processedRecord.geometry.coordinates);
+            var coords = map.pointToExternal(processedRecord.geometry.coordinates);
+            processedRecord.geometry.coordinates = [coords.lon, coords.lat];
 
             // convert asset URLs to simple filename
             $.each(processedRecord.properties.fields, function(i, field){
@@ -86,11 +87,9 @@ define(['records', 'map', 'utils', './pcapi'],
             //console.debug("Post: " + recordDir);
             pcapi.saveItem(userId, "records", processedRecord, function(status, data){
                 if(status){
-                    console.debug(data);
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
-                    //name = decodeURIComponent(name);
 
                     if(record.name !== name){
                         // name has been changed by api
@@ -107,7 +106,6 @@ define(['records', 'map', 'utils', './pcapi'],
                         if(records.isAsset(field, type)){
                             ++assetCount;
                             var options = new FileUploadOptions();
-                            //options.chunkedMode = false;  // ?
 
                             if(type === 'audio'){
                                 options.mimeType = "audio/3gpp";
