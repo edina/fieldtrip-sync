@@ -71,15 +71,12 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
 
             html += '<li>\
                        <div data-role="fieldcontain">\
-                         <label for="flip-checkbox-'+ i +'">\
-                         ' + editorName + '\
-                         </label>\
+                         <label for="flip-checkbox-'+ i +'">'+editorName+'</label>\
                          <input data-role="flipswitch"\
-                                name="flip-checkbox-' + i + '"\
+                                name="flip-checkbox-'+ i +'"\
+                                id="flip-checkbox-'+ i +'"\
                                 class="editor" data-editor-name="'+editorName+'"\
-                                type="checkbox" \
-                                ' + checked + ' \
-                          >\
+                                type="checkbox" '+ checked +'>\
                        </div>\
                      </li>';
         }
