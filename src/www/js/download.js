@@ -366,14 +366,16 @@ return {
 
                 //  fetch assets and convert URLs
                 $.each(record.properties.fields, $.proxy(function(i, field){
-                    if(records.isAsset(field)){
+                    var type = records.typeFromId(field.id);
+                    if(records.isAsset(field, type)){
                         ++assetCount;
 
                         var source = rootUrl + "/" + field.val;
                         var nameEnc = encodeURI(name);
                         var fieldValEnc = encodeURI(field.val);
 
-                        var target = file.getFilePath(records.getAssetsDir()) + "/" + nameEnc + "/" + fieldValEnc;
+                        var target = file.getFilePath(records.getAssetsDir(type)) +
+                            "/" + nameEnc + "/" + fieldValEnc;
 
                         console.debug("download: " + source + " to " + target);
 
