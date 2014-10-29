@@ -61,6 +61,10 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
         var html = '';
         var checked;
 
+        editors.metadata.sort(function(a, b){
+            return a.toLowerCase() > b.toLowerCase();
+        });
+
         for(var i=0; i<editors.metadata.length; i++){
             var editorName = editors.metadata[i].replace(/\/editors\/\/?/g, '');
             checked = '';
