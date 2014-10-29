@@ -68,7 +68,7 @@ return {
 
         switch(type){
             case records.EDITOR_GROUP.PUBLIC:
-                userId = pcapi.getAnonymousUserId();
+                userId = utils.getAnonymousUserId();
                 path = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
             break;
             default:
@@ -158,15 +158,14 @@ return {
     /**
      * Download item from cloud provider.
      * @param options:
-     *   fileName the name of item
-     *   remoteDir the name of the directory on the server
-     *   localDir the local directory where the item will be downloaded.
-     *   localFileName is the local filename, use it when you want the downloaded
-     *     item to have different name from the remote one
-     *   targetName the name with which the file will be stored on the phone
-     * @param callback Function will be called when editor is successfully downloaded.
+     *   fileName - the name of item
+     *   remoteDir - the name of the directory on the server
+     *   localDir - the local directory where the item will be downloaded.
+     *   targetName - the name with which the file will be stored on the phone
+     * @param success Function will be called when item is successfully downloaded.
+     * @param error Function will be called when an error has occurred.
      */
-    downloadItem: function(options, callback){
+    downloadItem: function(options, success, error){
         var itemUrl = pcapi.buildFSUrl(options.remoteDir, options.fileName);
         //if there's a userId then change the userID
         if(options.userId){
@@ -175,11 +174,7 @@ return {
 
         var target = file.getFilePath(options.localDir)+'/'+options.targetName;
 
-        file.fileTransfer(itemUrl, target, function(success, entry){
-            if(success){
-                callback(entry);
-            }
-        });
+        file.ftDownload(itemUrl, target, success, error);
     },
 
     /**
@@ -381,9 +376,8 @@ return {
 
                         console.debug("download: " + source + " to " + target);
 
-                        //TO-DO integrate this with the file.fileTransfer function
-                        new FileTransfer().download(
-                            encodeURI(source),
+                        file.ftDownload(
+                            source,
                             target,
                             function(entry) {
                                 console.debug("download complete: " + file.getFilePath(entry));
