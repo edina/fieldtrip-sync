@@ -57,7 +57,7 @@ return {
 
         switch(type){
             case records.EDITOR_GROUP.PUBLIC:
-                userId = utils.getAnonymousUserId();
+                userId = utils.getAnonymousUser();
                 path = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
             break;
             default:
