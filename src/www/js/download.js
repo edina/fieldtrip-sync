@@ -37,27 +37,16 @@ DAMAGE.
 define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
     records, map, file, utils, pcapi){
 
-    /**
-     * set class name for editors on localstorage
-     * @param FileEntry entry
-     * @param group that holds all the editors class names
-     */
-    var setClassNames = function(entry, group){
-        //read the class for the editor button and store it to session storage
-        //read the file and check for class for the button as hidden value
-        if(entry.name.indexOf(".edtr") > -1){
-            entry.file(function(file) {
-                var reader = new FileReader();
+    var processEditor = function(fileEntry, group){
+        var promise = file.readTextFile(fileEntry);
 
-                reader.onloadend = function(e) {
-                    records.setEditorClass(entry.name, this.result, group);
-                };
+        promise.done(function(data){
+            records.processEditor(fileEntry.name, data, group);
+        });
 
-                reader.readAsText(file);
-            }, function(e){
-                console.log(e);
-            });
-        }
+        promise.fail(function(err){
+            console.error(err);
+        });
     };
 
 return {
@@ -79,7 +68,9 @@ return {
         var fileName = editor.substring(editor.lastIndexOf('/') + 1, editor.length);
         var options = {"userId": userId, "fileName": editor, "remoteDir": "editors", "localDir": path, "targetName": editor};
         this.downloadItem(options, function(entry){
-            setClassNames(entry, type);
+            if(entry.name.indexOf(".edtr") > -1){
+                processEditor(entry, type);
+            }
         });
     },
 
@@ -88,7 +79,6 @@ return {
      * @param callback Function executed after sync is complete.
      */
     downloadEditors: function(callback) {
-        console.log(records.getEditorsDir());
         this.downloadItems(records.getEditorsDir(),'editors', function(success){
             callback(success);
         });
@@ -137,8 +127,9 @@ return {
                             var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
                             var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
                             this.downloadItem(options, function(entry){
-
-                                setClassNames(entry, records.EDITOR_GROUP.PRIVATE);
+                                if(entry.name.indexOf(".edtr") > -1){
+                                    processEditor(entry, records.EDITOR_GROUP.PRIVATE);
+                                }
 
                                 ++count;
                                 downloads.push(fileName);
