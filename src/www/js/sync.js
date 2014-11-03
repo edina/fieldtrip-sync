@@ -603,7 +603,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
             $('body').one('_pageshow', '#editors-list-page', function(){
 
                 // Request the active and available editors
-                var availableEditors = download.listEditorsPromise(utils.getAnonymousUser());
+                var availableEditors = download.listEditorsPromise(pcapi.getAnonymousUserId());
                 var activeEditors = records.getActiveEditors(records.EDITOR_GROUP.PUBLIC);
 
                 availableEditors.fail(function(err){

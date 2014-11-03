@@ -34,7 +34,7 @@ DAMAGE.
 /**
  * interface for the PCAPI
  */
-define(['config'], function(config){
+define(['utils'], function(utils){
 
     /**
      * Unset user login id.
@@ -367,9 +367,7 @@ define(['config'], function(config){
         },
 
 
-        getAnonymousUserId: function(){
-          return config.pcapianonymous || null;
-        },
+        getAnonymousUserId: utils.getAnonymousUserId,
 
         /**
          * function for getting the assets urls

@@ -187,7 +187,7 @@ define(['records', 'map', 'utils', './pcapi'],
                 var userId;
                 switch(annotation.editorGroup){
                     case 'public':
-                        userId = utils.getAnonymousUser();
+                        userId = pcapi.getAnonymousUserId();
                     break;
                     default:
                         userId = pcapi.getUserId();
