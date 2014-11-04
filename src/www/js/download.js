@@ -79,8 +79,11 @@ return {
      * @param callback Function executed after sync is complete.
      */
     downloadEditors: function(callback) {
-        this.downloadItems(records.getEditorsDir(),'editors', function(success){
-            callback(success);
+        var self = this;
+        records.deleteAllEditors(function(){
+            self.downloadItems(records.getEditorsDir(),'editors', function(success){
+                callback(success);
+            });
         });
     },
 
@@ -100,49 +103,46 @@ return {
             utils.doCallback(callback, success, downloads);
         };
 
-        file.deleteAllFilesFromDir(localDir, $.proxy(function(){
-
-            pcapi.getFSItems(remoteDir, $.proxy(function(status, data){
-                if(status === false){
+        pcapi.getFSItems(remoteDir, $.proxy(function(status, data){
+            if(status === false){
+                // nothing to do
+                utils.inform('No editors to sync');
+                finished(true);
+            }
+            else{
+                if(data.metadata.length ===0){
                     // nothing to do
                     utils.inform('No editors to sync');
                     finished(true);
                 }
                 else{
-                    if(data.metadata.length ===0){
-                        // nothing to do
-                        utils.inform('No editors to sync');
-                        finished(true);
-                    }
-                    else{
-                        var count = 0;
-                        var noOfItems = data.metadata.length;
+                    var count = 0;
+                    var noOfItems = data.metadata.length;
 
-                        //utils.printObj(data.metadata);
-                        var editorClassObj = {};
+                    //utils.printObj(data.metadata);
+                    var editorClassObj = {};
 
-                        // do sync
-                        $.each(data.metadata, $.proxy(function(i, item){
-                            // TODO work would correct filename and path
-                            var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
-                            var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
-                            this.downloadItem(options, function(entry){
-                                if(entry.name.indexOf(".edtr") > -1){
-                                    processEditor(entry, records.EDITOR_GROUP.PRIVATE);
-                                }
+                    // do sync
+                    $.each(data.metadata, $.proxy(function(i, item){
+                        // TODO work would correct filename and path
+                        var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
+                        var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
+                        this.downloadItem(options, function(entry){
+                            if(entry.name.indexOf(".edtr") > -1){
+                                processEditor(entry, records.EDITOR_GROUP.PRIVATE);
+                            }
 
-                                ++count;
-                                downloads.push(fileName);
-                                if(count === noOfItems){
-                                    finished(true);
-                                }
-                            });
+                            ++count;
+                            downloads.push(fileName);
+                            if(count === noOfItems){
+                                finished(true);
+                            }
+                        });
 
-                            //utils.printObj(data);
-                        }, this));
-                    }
+                        //utils.printObj(data);
+                    }, this));
                 }
-            }, this));
+            }
         }, this));
     },
 
