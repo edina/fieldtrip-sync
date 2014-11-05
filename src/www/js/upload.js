@@ -76,6 +76,12 @@ define(['records', 'map', 'utils', './pcapi'],
                     if(!success){
                         delay = 3000;
                         utils.inform(msg);
+                    }else{
+                        if(utils.getConfig().ogcsync){
+                            pcapi.exportRecord(record.name, function(result){
+                                console.log(result);
+                            });
+                        }
                     }
 
                     setTimeout(function(){

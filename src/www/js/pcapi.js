@@ -367,6 +367,36 @@ define(['utils'], function(utils){
         },
 
 
+        /**
+         * Trigger internal record export into the database
+         * @param recordName Name of the record to export
+         * @param callback function after fetching the items
+         */
+        exportRecord: function(recordName, callback){
+
+            var url = this.buildUrl("records", recordName);
+
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: url + '?ogc_sync=true',
+                success: function(data){
+                    if(data.error == 1){
+                        callback(false);
+                    }
+                    else{
+                        callback(true, data);
+                    }
+                },
+                error: function(jqXHR, status, error){
+                    console.error("Problem with " + url + " : status=" +
+                                  status + " : " + error);
+                    callback(false);
+                },
+                cache: false
+            });
+        },
+
         getAnonymousUserId: utils.getAnonymousUserId,
 
         /**
