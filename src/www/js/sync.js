@@ -438,7 +438,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                         }
                     }
                     else if(details.type === 'editors'){
-                        records.deleteEditor(details.val);
+                        records.deleteEditor(records.EDITOR_GROUP.PRIVATE, details.val);
                     }
                     else{
                         console.warn("No such record type: " + details.type);
@@ -604,17 +604,23 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
 
                 // Request the active and available editors
                 var availableEditors = download.listEditorsPromise(pcapi.getAnonymousUserId());
-                var activeEditors = records.getActiveEditors(records.EDITOR_GROUP.PUBLIC);
+                var editors = records.getEditorsByGroup(records.EDITOR_GROUP.PUBLIC);
+                var activeEditors = [];
+
+                for(var key in editors){
+                    if(editors.hasOwnProperty(key)){
+                        activeEditors.push(key);
+                    }
+                }
 
                 availableEditors.fail(function(err){
                     utils.inform("Problem fetching public editors");
                     console.error(err);
                 });
 
-                // When the two values are resolved
-                $.when(availableEditors, activeEditors)
-                    .done(function(available, active){
-                        createListEditors(available, active, '#editors-list-page ul#editors-list');
+                availableEditors
+                    .done(function(available){
+                        createListEditors(available, activeEditors, '#editors-list-page ul#editors-list');
                     });
             });
 
@@ -633,7 +639,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
             if($editor.prop('checked')){
                 download.downloadEditor(records.EDITOR_GROUP.PUBLIC, editorName);
             }else{
-                file.deleteFile(editorName, records.getEditorsDir(records.EDITOR_GROUP.PUBLIC));
+                records.deleteEditor(records.EDITOR_GROUP.PUBLIC, editorName);
             }
         }
     );
