@@ -372,9 +372,9 @@ define(['utils'], function(utils){
          * @param recordName Name of the record to export
          * @param callback function after fetching the items
          */
-        exportRecord: function(recordName, callback){
+        exportRecord: function(userId, recordName, callback){
 
-            var url = this.buildUrl("records", recordName);
+            var url = this.buildUserUrl(userId, "records", recordName);
 
             $.ajax({
                 type: "GET",
@@ -382,16 +382,16 @@ define(['utils'], function(utils){
                 url: url + '?ogc_sync=true',
                 success: function(data){
                     if(data.error == 1){
-                        callback(false);
+                        utils.doCallback(callback, false);
                     }
                     else{
-                        callback(true, data);
+                        utils.doCallback(callback, true, data);
                     }
                 },
                 error: function(jqXHR, status, error){
                     console.error("Problem with " + url + " : status=" +
                                   status + " : " + error);
-                    callback(false);
+                    utils.doCallback(callback, false);
                 },
                 cache: false
             });

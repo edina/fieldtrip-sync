@@ -78,7 +78,7 @@ define(['records', 'map', 'utils', './pcapi'],
                         utils.inform(msg);
                     }else{
                         if(utils.getConfig().ogcsync){
-                            pcapi.exportRecord(record.name, function(result){
+                            pcapi.exportRecord(userId, record.name, function(result){
                                 console.log(result);
                             });
                         }
