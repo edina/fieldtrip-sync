@@ -37,8 +37,40 @@ DAMAGE.
 define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
     records, map, file, utils, pcapi){
 
+    var EDITOR_ASSETS=['dtree', 'layers']; // List of possible assets associated to an editor
+
+    /**
+     * Download the assets associated to the editor
+     * @implements records.processEditor
+     * @param editorName name of the editor
+     * @param html html content of the editor
+     * @param group the records.EDITOR_GROUP
+     * @param online boolean value if the processing is held online
+     */
+    var downloadAssets = function(editorName, html, group, online){
+        var $form = $(html);
+        $.each(EDITOR_ASSETS, function(i, assetType){
+            var assetName = $('input[data-'+assetType+']', $form).data(assetType);
+            if(assetName !== undefined){
+                console.debug(assetName);
+                if(online){
+                    //TODO: dowload assets
+                }else{
+                    //TODO: Check that the asset is there
+                }
+            }
+        });
+    };
+
+    records.addProcessEditor(downloadAssets);
+
 return {
 
+    /**
+     * Download an editor and add it to the editors list
+     * @param type name of editors group (records.EDITOR_GROUP)
+     * @param editor Editor name
+     */
     downloadEditor: function(type, editor){
         var userId;
         var path;
