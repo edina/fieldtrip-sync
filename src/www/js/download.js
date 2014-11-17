@@ -37,18 +37,6 @@ DAMAGE.
 define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
     records, map, file, utils, pcapi){
 
-    var processEditor = function(fileEntry, group){
-        var promise = file.readTextFile(fileEntry);
-
-        promise.done(function(data){
-            records.processEditor(fileEntry.name, data, group);
-        });
-
-        promise.fail(function(err){
-            console.error(err);
-        });
-    };
-
 return {
 
     downloadEditor: function(type, editor){
@@ -69,7 +57,7 @@ return {
         var options = {"userId": userId, "fileName": editor, "remoteDir": "editors", "localDir": path, "targetName": editor};
         this.downloadItem(options, function(entry){
             if(entry.name.indexOf(".edtr") > -1){
-                processEditor(entry, type);
+                records.addEditor(entry, type);
             }
         });
     },
@@ -129,7 +117,7 @@ return {
                         var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
                         this.downloadItem(options, function(entry){
                             if(entry.name.indexOf(".edtr") > -1){
-                                processEditor(entry, records.EDITOR_GROUP.PRIVATE);
+                                records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
                             }
 
                             ++count;
