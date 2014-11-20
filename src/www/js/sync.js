@@ -66,8 +66,15 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
         });
 
         for(var i=0; i<editors.metadata.length; i++){
-            var editorName = editors.metadata[i].replace(/\/editors\/\/?/g, '');
+            var editorKey = editors.metadata[i].replace(/\/editors\/\/?/g, '');
+            var editorName;
             checked = '';
+
+            if(editors.names !== undefined && editors.names[i] !== undefined){
+                editorName = editors.names[i];
+            }else{
+                editorName = editorKey;
+            }
 
             if(active.indexOf(editorName) > -1){
                 checked = 'checked';
@@ -79,7 +86,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                          <input data-role="flipswitch"\
                                 name="flip-checkbox-'+ i +'"\
                                 id="flip-checkbox-'+ i +'"\
-                                class="editor" data-editor-name="'+editorName+'"\
+                                class="editor" data-editor-name="'+editorKey+'"\
                                 type="checkbox" '+ checked +'>\
                        </div>\
                      </li>';
