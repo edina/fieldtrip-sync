@@ -147,7 +147,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                                     field.val,
                                     encodeURI(assetUrl),
                                     function(result){
-                                        utils.printObj(result);
+                                        //utils.printObj(result);
                                         var success;
                                         try{
                                             var res = JSON.parse(result.response);
@@ -207,6 +207,44 @@ var _this = {
         // do upload sync
         var annotations = records.getSavedRecords();
         var uploadCount = 0;
+        var uploadQueue = [];
+
+        var uploadNextRecord = function(){
+            var id = uploadQueue.pop();
+            if(id){
+                var annotation = annotations[id];
+
+                // ++uploadCount;
+                createRemoteRecord(
+                    id,
+                    annotation.record,
+                    function(success){
+                        --uploadCount;
+                        $('#' + id + ' .ui-block-a').removeClass(
+                            'saved-records-list-syncing');
+                        if(success){
+                            $('#' + id + ' .ui-block-a').addClass(
+                                'saved-records-list-synced-true');
+
+                            annotation.isSynced = true;
+                            records.saveAnnotation(id, annotation);
+                        }
+                        else{
+                            $('#' + id + ' .ui-block-a').addClass(
+                                'saved-records-list-synced-false');
+                        }
+
+                        // get next in queue
+                        uploadNextRecord();
+                    }
+                );
+            }
+
+            if(uploadCount === 0){
+                complete();
+            }
+        };
+
         $.each(annotations, function(id, annotation){
             if(!annotation.isSynced){
                 $('#' + id + ' .ui-block-a').removeClass(
@@ -214,33 +252,23 @@ var _this = {
                 $('#' + id + ' .ui-block-a').addClass(
                     'saved-records-list-syncing');
 
-                ++uploadCount;
-                createRemoteRecord(id, annotation.record, function(success){
-                    --uploadCount;
-                    $('#' + id + ' .ui-block-a').removeClass(
-                        'saved-records-list-syncing');
-                    if(success){
-                        $('#' + id + ' .ui-block-a').addClass(
-                            'saved-records-list-synced-true');
-
-                        annotation.isSynced = true;
-                        records.saveAnnotation(id, annotation);
-                    }
-                    else{
-                        $('#' + id + ' .ui-block-a').addClass(
-                            'saved-records-list-synced-false');
-                    }
-
-                    if(uploadCount === 0){
-                        complete();
-                    }
-                });
+                uploadQueue.push(id);
             }
         });
 
-        if(uploadCount === 0){
+        if(uploadQueue.length === 0){
             complete();
             utils.inform('Nothing to upload');
+        }
+        else{
+            uploadCount = uploadQueue.length;
+            console.debug(uploadCount + " to upload");
+
+            // create thread threads for downloading
+            var uploadThreads = 3;
+            for(var i = 0; i < uploadThreads; i++){
+                uploadNextRecord();
+            }
         }
     },
 };
