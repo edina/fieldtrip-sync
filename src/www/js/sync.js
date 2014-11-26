@@ -57,36 +57,43 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
      * @param a dom selector (usually a ul element)
      *
      */
-    var createListEditors = function(editors, active, domElement){
+    var createListEditors = function(editorsData, active, domElement){
         var html = '';
         var checked;
+        var editors = [];
+        var i;
 
-        editors.metadata.sort(function(a, b){
-            return a.toLowerCase() > b.toLowerCase();
+        for(i=0; i<editorsData.metadata.length; i++){
+            var editor = {};
+            editor.editorId = editorsData.metadata[i].replace(/\/editors\/\/?/g, '');
+            if(editorsData.names !== undefined &&
+               editorsData.names[i] !== undefined && editorsData.names[i] !== null){
+                editor.name = editorsData.names[i];
+            }
+            else{
+                editor.name = editors.editorId;
+            }
+            editors.push(editor);
+        }
+
+        editors.sort(function(a, b){
+            return a.name.toLowerCase() > a.name.toLowerCase();
         });
 
-        for(var i=0; i<editors.metadata.length; i++){
-            var editorKey = editors.metadata[i].replace(/\/editors\/\/?/g, '');
-            var editorName;
+        for(i=0; i<editors.length; i++){
             checked = '';
 
-            if(editors.names !== undefined && editors.names[i] !== undefined){
-                editorName = editors.names[i];
-            }else{
-                editorName = editorKey;
-            }
-
-            if(active.indexOf(editorName) > -1){
+            if(active.indexOf(editors[i].editorId) > -1){
                 checked = 'checked';
             }
 
             html += '<li>\
                        <div data-role="fieldcontain">\
-                         <label for="flip-checkbox-'+ i +'">'+editorName+'</label>\
+                         <label for="flip-checkbox-'+ i +'">'+editors[i].name+'</label>\
                          <input data-role="flipswitch"\
                                 name="flip-checkbox-'+ i +'"\
                                 id="flip-checkbox-'+ i +'"\
-                                class="editor" data-editor-name="'+editorKey+'"\
+                                class="editor" data-editor-name="'+editors[i].editorId+'"\
                                 type="checkbox" '+ checked +'>\
                        </div>\
                      </li>';
