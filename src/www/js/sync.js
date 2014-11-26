@@ -71,7 +71,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                 editor.name = editorsData.names[i];
             }
             else{
-                editor.name = editors.editorId;
+                editor.name = editor.editorId;
             }
             editors.push(editor);
         }
