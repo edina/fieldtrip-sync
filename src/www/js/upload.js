@@ -69,7 +69,6 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             var assetCount = 0;
             var finished = function(success, msg){
                 // default values
-                success = success || true;
                 msg = msg || 'An error has occurred syncing';
 
                 --assetCount;
