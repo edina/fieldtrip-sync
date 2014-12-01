@@ -122,7 +122,9 @@ define(['records', 'map', 'utils', './pcapi'],
 
                             var fileName = field.val.substr(field.val.lastIndexOf('/') + 1);
                             var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
+                            console.log("Asset url is "+assetUrl);
                             options.fileName = fileName;
+                            options.chunkedMode = false;
 
                             setTimeout(function(){
                                 var ft = new FileTransfer();
