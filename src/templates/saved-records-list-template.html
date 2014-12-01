@@ -10,6 +10,7 @@
         <a href="#" class="saved-records-delete" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="b"></a>
     </div>
 
+    <%if (layout === 'records-grid') { %>
     <div class="record-extra">
 
         <% _.each(fields, function(field) { %>
@@ -33,7 +34,7 @@
 
 
     </div>
-
+    <%}%>
 
 </div>
 </li>
