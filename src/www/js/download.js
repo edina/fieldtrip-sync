@@ -40,6 +40,29 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
     var EDITOR_ASSETS=['dtree', 'layers']; // List of possible assets associated to an editor
 
     /**
+     * Download item from cloud provider.
+     * @param options:
+     *   userId - User id (optional)
+     *   fileName - the name of item
+     *   remoteDir - the name of the directory on the server
+     *   localDir - cordova fileEntry pointing to the local directory where the item will be downloaded.
+     *   targetName - the name with which the file will be stored on the phone
+     * @param success Function will be called when item is successfully downloaded.
+     * @param error Function will be called when an error has occurred.
+     */
+    var downloadItem = function(options, success, error){
+        var itemUrl = pcapi.buildFSUrl(options.remoteDir, options.fileName);
+        //if there's a userId then change the userID
+        if(options.userId){
+            itemUrl = pcapi.buildUserUrl(options.userId, options.remoteDir, options.fileName);
+        }
+
+        var target = file.getFilePath(options.localDir)+'/'+options.targetName;
+
+        file.ftDownload(itemUrl, target, success, error);
+    };
+
+    /**
      * Download the assets associated to the editor
      * @implements records.processEditor
      * @param editorName name of the editor
@@ -107,6 +130,8 @@ return {
         });
     },
 
+    downloadItem: downloadItem,
+
     /**
      * Download items from cloud provider.
      * @param localDir the local directory where things are downloaded
@@ -164,28 +189,6 @@ return {
                 }
             }
         }, this));
-    },
-
-    /**
-     * Download item from cloud provider.
-     * @param options:
-     *   fileName - the name of item
-     *   remoteDir - the name of the directory on the server
-     *   localDir - the local directory where the item will be downloaded.
-     *   targetName - the name with which the file will be stored on the phone
-     * @param success Function will be called when item is successfully downloaded.
-     * @param error Function will be called when an error has occurred.
-     */
-    downloadItem: function(options, success, error){
-        var itemUrl = pcapi.buildFSUrl(options.remoteDir, options.fileName);
-        //if there's a userId then change the userID
-        if(options.userId){
-            itemUrl = pcapi.buildUserUrl(options.userId, options.remoteDir, options.fileName);
-        }
-
-        var target = file.getFilePath(options.localDir)+'/'+options.targetName;
-
-        file.ftDownload(itemUrl, target, success, error);
     },
 
     /**
