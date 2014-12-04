@@ -33,6 +33,13 @@
     background-position: 0 3px;
 }
 
+.saved-records-list-synced-incomplete{
+    background-image: url("images/incompleterecord.png");
+    background-size: 38px 35px;
+    background-repeat: no-repeat;
+    background-position: 0 3px;
+}
+
 .saved-records-list-syncing{
     background-image: url("images/ajax-loader.gif");
     background-size: 30px 30px;

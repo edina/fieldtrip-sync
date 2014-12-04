@@ -2,7 +2,11 @@
 
 <div class="ui-grid-b">
 
-    <div class="ui-block-a saved-records-list-synced-<%= annotation.isSynced %>"></div>
+    <%if (annotation.isIncomplete){ %>
+        <div class="ui-block-a saved-records-list-synced-incomplete"></div>
+    <%}else{ %>
+        <div class="ui-block-a saved-records-list-synced-<%= annotation.isSynced %>"></div>
+    <%}%>
     <div class="ui-block-b saved-records-view">
         <a href="#" class="ellipsis"><%= annotation.record.name %></a>
     </div>

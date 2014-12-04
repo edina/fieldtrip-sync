@@ -67,7 +67,14 @@ define(['records', 'map', 'utils', './pcapi', './login'],
             });
 
             var assetCount = 0;
-            var finished = function(success, msg){
+
+            /*
+             * @param success boolean
+             * @param msg the message to show to the user
+             * @param error object with the detailed type of error that'll be
+             *        passed to the callback
+             */
+            var finished = function(success, msg, error){
                 // default values
                 msg = msg || 'An error has occurred syncing';
 
@@ -80,7 +87,7 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                     }
 
                     setTimeout(function(){
-                        callback(success);
+                        callback(success, error);
                     }, delay);
                 }
             };
@@ -166,8 +173,9 @@ define(['records', 'map', 'utils', './pcapi', './login'],
                                     function(error){
                                         utils.printObj(error);
                                         console.error("Problem uploading asset: " +
-                                                      assetUrl + ", error = " + error.code);
-                                        finished(false);
+                                                      assetUrl + ", error = " + error.exception);
+                                        // No user message but pass the FileTransferError
+                                        finished(false, null, error);
                                     },
                                     options
                                 );
@@ -217,20 +225,32 @@ var _this = {
                 createRemoteRecord(
                     id,
                     annotation.record,
-                    function(success){
+                    function(success, error){
                         --uploadCount;
-                        $('#' + id + ' .ui-block-a').removeClass(
+                        var statusIcon = '#' + id + ' .ui-block-a';
+
+                        $(statusIcon).removeClass(
                             'saved-records-list-syncing');
                         if(success){
-                            $('#' + id + ' .ui-block-a').addClass(
+                            $(statusIcon).addClass(
                                 'saved-records-list-synced-true');
 
                             annotation.isSynced = true;
                             records.saveAnnotation(id, annotation);
                         }
                         else{
-                            $('#' + id + ' .ui-block-a').addClass(
-                                'saved-records-list-synced-false');
+                            if(error instanceof FileTransferError &&
+                               error.code === FileTransferError.FILE_NOT_FOUND_ERR){
+                                $(statusIcon).addClass(
+                                    'saved-records-list-synced-incomplete');
+                                annotation.isIncomplete = true;
+                                records.saveAnnotation(id, annotation);
+
+                            }
+                            else{
+                                $(statusIcon).addClass(
+                                    'saved-records-list-synced-false');
+                            }
                         }
 
                         // get next in queue
@@ -245,7 +265,7 @@ var _this = {
         };
 
         $.each(annotations, function(id, annotation){
-            if(!annotation.isSynced){
+            if(!annotation.isSynced && !annotation.isIncomplete){
                 $('#' + id + ' .ui-block-a').removeClass(
                     'saved-records-list-synced-false');
                 $('#' + id + ' .ui-block-a').addClass(
