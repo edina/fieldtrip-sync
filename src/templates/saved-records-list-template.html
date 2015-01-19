@@ -2,7 +2,11 @@
 
 <div class="ui-grid-b">
 
-    <div class="ui-block-a saved-records-list-synced-<%= annotation.isSynced %>"></div>
+    <%if (annotation.isIncomplete){ %>
+        <div class="ui-block-a saved-records-list-synced-incomplete"></div>
+    <%}else{ %>
+        <div class="ui-block-a saved-records-list-synced-<%= annotation.isSynced %>"></div>
+    <%}%>
     <div class="ui-block-b saved-records-view">
         <a href="#" class="ellipsis"><%= annotation.record.name %></a>
     </div>
@@ -10,6 +14,7 @@
         <a href="#" class="saved-records-delete" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="b"></a>
     </div>
 
+    <%if (layout === 'records-grid') { %>
     <div class="record-extra">
 
         <% _.each(fields, function(field) { %>
@@ -33,7 +38,7 @@
 
 
     </div>
-
+    <%}%>
 
 </div>
 </li>
