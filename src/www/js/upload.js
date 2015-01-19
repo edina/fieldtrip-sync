@@ -48,6 +48,12 @@ define(['records', 'map', 'utils', './pcapi', './login'],
         var userId = login.getUser().id;
         var cloudProviderUrl = pcapi.getCloudProviderUrl();
 
+        // Replace slashes in the name for -
+        if(record.name.indexOf('/') > -1){
+            record.name = record.name.replace(/\//g, '-');
+            $('#' + id + ' .saved-records-view > a').text(record.name);
+        }
+
         // clone record for remote copy
         var dropboxRecord = jQuery.extend(true, {}, record);
 
