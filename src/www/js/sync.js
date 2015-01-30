@@ -65,6 +65,12 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
 
         for(i=0; i<editorsData.metadata.length; i++){
             var editor = {};
+
+            // Skip non editors
+            if (!editorsData.metadata[i].endsWith('.edtr')) {
+                continue;
+            }
+
             editor.editorId = editorsData.metadata[i].replace(/\/editors\/\/?/g, '');
             if(editorsData.names !== undefined &&
                editorsData.names[i] !== undefined && editorsData.names[i] !== null){
