@@ -78,11 +78,17 @@
 }
 
 ul#editors-list > li label{
-    float: left;
-    margin: 8px 0px;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 75px;
+
 }
 
 ul#editors-list > li .ui-flipswitch{
-    float: right;
+    position: absolute;
+    right: 0.8em;
+    top: 0;
+    margin-top: 8px;
 }
 
