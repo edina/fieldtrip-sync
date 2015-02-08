@@ -38,6 +38,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
     records, map, file, utils, pcapi){
 
     var EDITOR_ASSETS=['dtree', 'layers']; // List of possible assets associated to an editor
+    var PRIVATE_USER_FORM_PATH = 'editors';
 
     /**
      * Download item from cloud provider.
@@ -158,8 +159,12 @@ return {
      */
     downloadEditors: function(callback) {
         var self = this;
+        var config = utils.getConfig();
+        if("formspath" in config){
+            PRIVATE_USER_FORM_PATH = config.formspath;
+        }
         records.deleteAllEditors(function(){
-            self.downloadItems(records.getEditorsDir(),'editors', function(success){
+            self.downloadItems(records.getEditorsDir(), PRIVATE_USER_FORM_PATH, function(success){
                 callback(success);
             });
         });
@@ -183,7 +188,10 @@ return {
             utils.doCallback(callback, success, downloads);
         };
 
-        pcapi.getFSItems(remoteDir, $.proxy(function(status, data){
+        var downloadOptions = {
+            "remoteDir": remoteDir
+        };
+        pcapi.getItems(downloadOptions, $.proxy(function(status, data){
             if(status === false){
                 // nothing to do
                 utils.inform('No editors to sync');
