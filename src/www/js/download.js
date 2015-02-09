@@ -52,7 +52,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
      * @param error Function will be called when an error has occurred.
      */
     var downloadItem = function(options, success, error){
-        var itemUrl = pcapi.buildFSUrl(options.remoteDir, options.fileName);
+        var itemUrl = pcapi.buildUrl(options.remoteDir, options.fileName);
         //if there's a userId then change the userID
         if(options.userId){
             itemUrl = pcapi.buildUserUrl(options.userId, options.remoteDir, options.fileName);
@@ -217,6 +217,9 @@ return {
                         var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
                         this.downloadItem(options, function(entry){
                             if(entry.name.indexOf(".edtr") > -1){
+                                records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
+                            }
+                            else if(entry.name.indexOf(".") === -1){
                                 records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
                             }
 
@@ -515,7 +518,7 @@ return {
                 }
             },
             function(err){
-                 deferred.reject(err);
+                deferred.reject(err);
             });
 
         return deferred.promise();
