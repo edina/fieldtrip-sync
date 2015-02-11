@@ -215,19 +215,24 @@ return {
                         // TODO work would correct filename and path
                         var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
                         var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
-                        this.downloadItem(options, function(entry){
-                            if(entry.name.indexOf(".edtr") > -1){
-                                records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
-                            }
-                            else if(entry.name.indexOf(".") === -1){
-                                records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
+                        this.downloadItem(options, function(entry) {
+                            var promise;
+
+                            if (entry.name.indexOf('.edtr') > -1 || entry.name.indexOf('.') === -1) {
+                                promise = records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
                             }
 
                             ++count;
-                            downloads.push(fileName);
-                            if(count === noOfItems){
-                                finished(true);
-                            }
+                            promise.done(function() {
+                                downloads.push(fileName);
+                            });
+
+                            promise.always(function() {
+                                if (count === noOfItems) {
+                                    finished(true);
+                                }
+                            });
+
                         });
 
                         //utils.printObj(data);
