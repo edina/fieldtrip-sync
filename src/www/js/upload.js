@@ -52,6 +52,19 @@ define(['records', 'map', 'utils', './pcapi'],
         // contains the fullPath to them
         var processedRecord = jQuery.extend(true, {}, record);
 
+        var getAssetFileName = function(path){
+            var name = path.substr(path.lastIndexOf('/') + 1);
+            if(name.indexOf('?')){
+                // make sure any arguments on the file name are removed
+                // note: cordova (3.6.3) on android now copies files
+                // from the gallery to the app cache adding a parameter,
+                // presumably for uniqueness
+                name = name.split('?')[0];
+            }
+
+            return name;
+        };
+
         if( typeof(processedRecord.geometry) === 'object' &&
             processedRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
@@ -61,7 +74,7 @@ define(['records', 'map', 'utils', './pcapi'],
             // convert asset URLs to simple filename
             $.each(processedRecord.properties.fields, function(i, field){
                 if(field.val && records.isAsset(field)){
-                    field.val = field.val.substr(field.val.lastIndexOf('/') + 1);
+                    field.val = getAssetFileName(field.val);
                 }
             });
 
@@ -127,9 +140,10 @@ define(['records', 'map', 'utils', './pcapi'],
                                 options.mimeType = "text/xml";
                             }
 
-                            var fileName = field.val.substr(field.val.lastIndexOf('/') + 1);
+                            var fileName = getAssetFileName(field.val);
                             var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
-                            console.log("Asset url is "+assetUrl);
+                            console.debug("Asset url is "+assetUrl);
+
                             options.fileName = fileName;
                             options.chunkedMode = false;
 
