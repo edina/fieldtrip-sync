@@ -74,50 +74,40 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
     var downloadAssets = function(editorName, html, group, online){
         var $form = $(html);
         $.each(EDITOR_ASSETS, function(i, assetType){
-            var assetName = $('input[data-'+assetType+']', $form).data(assetType);
-            if(assetName !== undefined){
-                console.debug(assetName);
-                var parts = assetName.match(/(.*?)\/(.*)/);
-                if(parts === null || parts.length != 3){
-                    console.debug('Invalid asset path: ' + assetName);
-                    return;
-                }
+            $form.children().filter(function(){
+                var assetName = $('input[data-'+assetType+']', this).data(assetType);
+                if(assetName !== undefined){
+                    console.debug(assetName);
 
-                //TODO: extend it to other type of assets
-                if(parts[1] !== 'editors'){
-                    console.warn('Currently only "editors" path supported');
-                    return;
-                }
-
-                console.debug(parts);
-                if(online){
-                    var options = {};
-
-                    options.remoteDir = parts[1];
-                    options.fileName = parts[2];
-                    options.targetName = parts[2];
-
-                    if(group === records.EDITOR_GROUP.PUBLIC){
-                            options.userId = pcapi.getAnonymousUserId();
-                            options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                    if(online){
+                        var options = {};
+    
+                        options.remoteDir = "editors";
+                        options.fileName = assetName;
+                        options.targetName = assetName;
+    
+                        if(group === records.EDITOR_GROUP.PUBLIC){
+                                options.userId = pcapi.getAnonymousUserId();
+                                options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                        }
+                        else{
+                                options.userId = pcapi.getUserId();
+                                options.localDir = records.getEditorsDir();
+                        }
+    
+                        downloadItem(
+                            options,
+                            function(){
+                                console.debug('Asset ' + assetName + ' downloaded');
+                            },
+                            function(){
+                                console.error('Error downloading ' + assetName);
+                            });
+                    }else{
+                        //TODO: Check that the asset is there
                     }
-                    else{
-                            options.userId = pcapi.getUserId();
-                            options.localDir = records.getEditorsDir();
-                    }
-
-                    downloadItem(
-                        options,
-                        function(){
-                            console.debug('Asset ' + assetName + ' downloaded');
-                        },
-                        function(){
-                            console.error('Error downloading ' + assetName);
-                        });
-                }else{
-                    //TODO: Check that the asset is there
                 }
-            }
+            });
         });
     };
 
