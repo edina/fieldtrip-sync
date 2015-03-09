@@ -37,7 +37,15 @@ DAMAGE.
 define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
     records, map, file, utils, pcapi){
 
-    var EDITOR_ASSETS=['dtree', 'layers']; // List of possible assets associated to an editor
+    var EDITOR_ASSETS = {
+        dtree: {
+            remoteDir: 'editors'
+        },
+        layers: {
+            remoteDir: 'layers'
+        }
+    };
+
     var PRIVATE_USER_FORM_PATH = 'editors';
 
     /**
@@ -71,40 +79,63 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
      * @param group the records.EDITOR_GROUP
      * @param online boolean value if the processing is held online
      */
-    var downloadAssets = function(editorName, html, group, online){
+    var downloadAssets = function(editorName, html, group, online) {
         var $form = $(html);
-        $.each(EDITOR_ASSETS, function(i, assetType){
-            $form.children().filter(function(){
-                var assetName = $('input[data-'+assetType+']', this).data(assetType);
-                if(assetName !== undefined){
+        var assetType;
+        var assetOptions;
+
+        $.each(EDITOR_ASSETS, function(assetType, assetOptions) {
+            $form.find('input[data-' + assetType + ']').each(function(j, element) {
+                var assetName = $(element).data(assetType);
+                if (assetName !== undefined) {
                     console.debug(assetName);
 
-                    if(online){
+                    if (online) {
                         var options = {};
-    
-                        options.remoteDir = "editors";
+
+                        options.remoteDir = assetOptions.remoteDir;
                         options.fileName = assetName;
                         options.targetName = assetName;
-    
-                        if(group === records.EDITOR_GROUP.PUBLIC){
-                                options.userId = pcapi.getAnonymousUserId();
-                                options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+
+                        switch (assetType) {
+                            case 'dtree':
+                                if (group === records.EDITOR_GROUP.PUBLIC) {
+                                    options.userId = pcapi.getAnonymousUserId();
+                                    options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                                }
+                                else {
+                                    options.userId = pcapi.getUserId();
+                                    options.localDir = records.getEditorsDir();
+                                }
+                            break;
+                            default: // Other assets get the path from the core
+                                if (group === records.EDITOR_GROUP.PUBLIC) {
+                                    options.userId = pcapi.getAnonymousUserId();
+                                }
+                                else
+                                {
+                                    options.userId = pcapi.getUserId();
+                                }
+                                options.localDir = records.getAssetsDir(assetType);
+
+                                if (!options.localDir) {
+                                    console.warn('Not directory defined for asset type: ' + assetType);
+                                    console.warn('Skipping: ' + assetName);
+                                    return;
+                                }
                         }
-                        else{
-                                options.userId = pcapi.getUserId();
-                                options.localDir = records.getEditorsDir();
-                        }
-    
+
                         downloadItem(
                             options,
-                            function(){
+                            function() {
                                 console.debug('Asset ' + assetName + ' downloaded');
                             },
-                            function(){
+                            function() {
                                 console.error('Error downloading ' + assetName);
                             });
-                    }else{
-                        //TODO: Check that the asset is there
+                    }else {
+                        // TODO: Check the presense of the asset
+                        console.debug('Associated asset: ' + assetName);
                     }
                 }
             });
