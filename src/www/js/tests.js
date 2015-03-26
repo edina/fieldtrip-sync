@@ -33,7 +33,7 @@ DAMAGE.
 
 /* global asyncTest, ok */
 
-define(['utils', './login', './upload', 'tests/systests'], function(// jshint ignore:line
+define(['utils', './pcapi', './upload', 'tests/systests'], function(// jshint ignore:line
     utils, login, upload, sts) {
 
 return {
