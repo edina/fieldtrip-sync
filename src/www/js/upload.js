@@ -129,7 +129,7 @@ define(['records', 'map', 'utils', './pcapi'],
                     // create any assets associated with record
                     $.each(record.properties.fields, function(i, field){
                         var type = records.typeFromId(field.id);
-                        if(records.isAsset(field, type)){
+                        if(records.isAsset(field, type) && typeof(field.val) !== 'undefined'){
                             ++assetCount;
                             var options = new FileUploadOptions();
 
