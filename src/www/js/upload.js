@@ -129,7 +129,7 @@ define(['records', 'map', 'utils', './pcapi'],
                     // create any assets associated with record
                     $.each(record.properties.fields, function(i, field){
                         var type = records.typeFromId(field.id);
-                        if(records.isAsset(field, type) && typeof(field.val) !== 'undefined'){
+                        if(records.isAsset(field, type) && field.val !== null){
                             ++assetCount;
                             var options = new FileUploadOptions();
 
@@ -137,6 +137,8 @@ define(['records', 'map', 'utils', './pcapi'],
                                 options.mimeType = "audio/3gpp";
                             }
                             else if(type === 'track'){
+                                // TODO track is a plugin,
+                                // sync shouldn't know anything about another plugin
                                 options.mimeType = "text/xml";
                             }
 
