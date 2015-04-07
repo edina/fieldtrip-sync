@@ -231,15 +231,33 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
             function(event){
                 event.preventDefault();
                 console.debug('vclick in login');
-                var provider = pcapi.getProvider();
-                pcapi.loginAsyncCloud(provider, function(userId){
-                    if(userId){
-                        refreshButtonsState('loggedin');
-                    }else{
-                        refreshButtonsState('loggedout');
+                var onsuccess = function(providers){
+                    if(providers.length === 1){
+                        var provider = providers[0];
+                        pcapi.setProvider(provider);
+                        pcapi.loginAsyncCloud(provider, function(userId){
+                            if(userId){
+                                refreshButtonsState('loggedin');
+                            }
+                            else{
+                                refreshButtonsState('loggedout');
+                            }
+                        });
                     }
-                });
-        });
+                    else{
+                        // TODO
+                    }
+                };
+
+                var onerror = function(){
+                    console.debug('Error querying the providers');
+                    utils.inform('Problem with login');
+                };
+
+                getProviders(onsuccess, onerror);
+            }
+
+        );
 
         //Logout button
         $(document).off('vclick', '#saved-records-page-header-login-sync.cloud-logout');
