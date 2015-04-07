@@ -241,18 +241,18 @@ return {
 
                             if (entry.name.indexOf('.edtr') > -1 || entry.name.indexOf('.') === -1) {
                                 promise = records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
+
+                                ++count;
+                                promise.done(function() {
+                                    downloads.push(fileName);
+                                });
+
+                                promise.always(function() {
+                                    if (count === noOfItems) {
+                                        finished(true);
+                                    }
+                                });
                             }
-
-                            ++count;
-                            promise.done(function() {
-                                downloads.push(fileName);
-                            });
-
-                            promise.always(function() {
-                                if (count === noOfItems) {
-                                    finished(true);
-                                }
-                            });
 
                         });
 
