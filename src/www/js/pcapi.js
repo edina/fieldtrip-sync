@@ -292,7 +292,7 @@ define(['utils'], function(utils){
          */
         checkLogin: function(callback){
             if(!this.userId){
-                console.log("check if user is logged in");
+                console.debug("check if user is logged in");
                 var user = getCloudLogin();
                 if(user !== null && user.id){
                     var url = this.getCloudProviderUrl() + '/auth/'+this.getProvider();
@@ -301,21 +301,33 @@ define(['utils'], function(utils){
                     }
 
                     console.debug("Check user with: " + url);
+
+                    var loginFailed = $.proxy(function(error){
+                        console.debug(error);
+                        this.userId = undefined;
+                        clearCloudLogin();
+                        callback(false, error);
+                    }, this);
+
                     $.ajax({
                         url: url,
                         type: "GET",
                         dataType: 'json',
                         cache: false,
                         success: $.proxy(function(data){
-
                             if(data.state === 1){
                                 this.setCloudLogin(user.id, user.cursor);
+                                callback(true, data);
                             }
-
-                            callback(true, data);
+                            else{
+                                // pcapi returned error for login,
+                                // clear stored session
+                                utils.printObj(data);
+                                loginFailed("pcapi returned error: " + data.state);
+                            }
                         }, this),
                         error: function(jqXHR, status, error){
-                            callback(false, error);
+                            loginFailed(error);
                         }
                     });
                 }
@@ -531,7 +543,7 @@ define(['utils'], function(utils){
                 options.filters = {};
             }
             else{
-                console.log(options.filters);
+                console.debug(options.filters);
             }
 
             $.ajax({
