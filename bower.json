@@ -1,19 +1,19 @@
 {
-    "name": "fieldtrip-sync",
-    "version": "0.6.2",
-    "homepage": "https://github.com/edina/fieldtrip-sync",
-    "description": "Sync is a Fieldtrip Open plugin for synchronising fieldtrip-open with PCAPI (Personal Cloud API).",
-    "main": "src/www/js/sync.js",
-    "dependencies": {
-        "pcapi": "0.0.3"
-    },
-    "keywords": [
-        "fieldtrip-open",
-        "sync",
-        "pcapi"
-    ],
-    "license": "BSD",
-    "ignore": [
-        "**/.*"
-    ]
+  "name": "fieldtrip-sync",
+  "version": "0.6.3",
+  "homepage": "https://github.com/edina/fieldtrip-sync",
+  "description": "Sync is a Fieldtrip Open plugin for synchronising fieldtrip-open with PCAPI (Personal Cloud API).",
+  "main": "src/www/js/sync.js",
+  "dependencies": {
+    "pcapi": "0.0.3"
+  },
+  "keywords": [
+    "fieldtrip-open",
+    "sync",
+    "pcapi"
+  ],
+  "license": "BSD",
+  "ignore": [
+    "**/.*"
+  ]
 }
