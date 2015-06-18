@@ -72,9 +72,10 @@ define(['utils'], function(utils){
 
 
         // close child browser
-        var closeCb = function(userId){
+        var closeCb = function(userId) {
             clearInterval(pollTimer);
             callback(userId);
+            cb.close();
         };
 
         console.debug('Poll: ' + pollUrl);
@@ -93,7 +94,7 @@ define(['utils'], function(utils){
                               cloudUserId = pollData.userid;
                               _this.setCloudLogin(cloudUserId);
                           }
-                          cb.close();
+
                           closeCb(cloudUserId);
                       }
                     }
