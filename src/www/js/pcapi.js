@@ -86,10 +86,15 @@ define(['utils'], function(utils){
         console.debug('Login with: ' + pollUrl);
         var cb = window.open(pollUrl, '_blank', 'location=no');
 
+        cb.addEventListener('exit', function(event) {
+            console.debug('Clearing polling timer');
+            clearInterval(pollTimer);
+            //callback();
+        });
+
         // close child browser
         var closeCb = function(userId) {
             console.debug('Finishing polling');
-            clearInterval(pollTimer);
             cb.close();
             callback(userId);
         };
