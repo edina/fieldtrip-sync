@@ -62,7 +62,8 @@ define(['utils'], function(utils){
      * @param loginUrl
      */
     var doLoginLocal = function(callback, cbrowser, loginUrl) {
-        loginWithPolling(callback, loginUrl, cbrowser);
+        //loginWithPolling(callback, loginUrl, cbrowser);
+        loginWithShiboleth(callback, loginUrl, loginUrl, cbrowser);
     };
 
     /**
@@ -157,6 +158,37 @@ define(['utils'], function(utils){
 
         if (typeof cbrowser === 'function') {
             // caller may want access to child browser reference
+            cbrowser(cb);
+        }
+    };
+
+    var loginWithShiboleth = function(callback, loginUrl, cbrowser) {
+        var pollUrl = loginUrl;
+
+        var cb = window.open(pollUrl, '_blank', 'location=no');
+
+        cb.addEventListener('loadstop', function(event) {
+            console.debug(event.type + ' - ' + event.url);
+
+            // Browser was redirected to the desired location
+            if (loginUrl === event.url) {
+                $.ajax({ url: pollUrl, dataType: 'json'})
+                    .done(function(pollData) {
+                        var cloudUserId;
+
+                        if (pollData.state === 1) {
+                            cloudUserId = pollData.userid;
+                            _this.setCloudLogin(cloudUserId);
+                            callback(cloudUserId);
+                        }
+
+                        cb.close();
+                    });
+            }
+        });
+
+        // caller may want access to child browser reference
+        if (typeof cbrowser === 'function') {
             cbrowser(cb);
         }
     };
