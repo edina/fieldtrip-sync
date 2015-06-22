@@ -61,52 +61,96 @@ define(['utils'], function(utils){
      * @param callback Function called after login attempt.
      * @param loginUrl
      */
-    var doLoginLocal = function(callback, cbrowser, loginUrl){
-        var pollTimer,
-            pollTimerCount = 0,
-            pollInterval = 3000,
-            pollForMax = 5 * 60 * 1000; //min
-        var pollUrl = loginUrl;
+    var doLoginLocal = function(callback, cbrowser, loginUrl) {
+        loginWithPolling(callback, loginUrl, cbrowser);
+    };
+
+    /**
+     * Login with polling
+     * @param callback Function called after login attempt.
+     * @param loginUrl
+     * @param cbrowser
+     */
+    var loginWithPolling = function(callback, pollUrl, loginUrl, cbrowser) {
+        var pollTimer;
+        var pollTimerCount = 0;
+        var pollForMax = 5 * 60 * 1000; //min
+        var timeoutCount = 0;
+        var minTimeout = 3000;
+        var pollInterval = minTimeout;
+        var maxTimeoutCount = 2;
+        var backoffStep = 500;
+        var backoff = 0;
+        var maxBackoff = 10;
+
         console.debug('Login with: ' + pollUrl);
         var cb = window.open(pollUrl, '_blank', 'location=no');
 
-
         // close child browser
         var closeCb = function(userId) {
+            console.debug('Finishing polling');
             clearInterval(pollTimer);
-            callback(userId);
             cb.close();
+            callback(userId);
+        };
+
+        var restartPolling = function() {
+            clearInterval(pollTimer);
+            pollTimer = setInterval(doPoll, pollInterval);
+        };
+
+        var doPoll = function() {
+            var stopPolling = false;
+
+            console.log('Doing polling');
+            $.ajax({ url: pollUrl, dataType: 'json', timeout: pollInterval})
+                .done(function(pollData) {
+                    var cloudUserId;
+
+                    if (pollData.state === 1) {
+                        cloudUserId = pollData.userid;
+                        _this.setCloudLogin(cloudUserId);
+                        closeCb(cloudUserId);
+                    }
+                })
+                .fail(function(error, status, httpStatus) {
+                    switch (status) {
+                        case 'parsererror':
+                            // Ignore html responses (like the redirection from Shibboleth)
+                            console.debug('Ignoring non json during polling');
+                        break;
+                        case 'timeout':
+                            console.debug('timeout');
+                            timeoutCount = timeoutCount + 1;
+
+                            // Increase the backoff and reset the timeoutCount
+                            if (timeoutCount >= maxTimeoutCount) {
+                                pollInterval = minTimeout + (Math.pow(2, backoff) * backoffStep);
+                                restartPolling();
+                                backoff = backoff + 1;
+                                timeoutCount = 0;
+                                console.debug('New polling interval: ' + pollInterval + 'ms');
+                            }
+                        break;
+                        default:
+                            console.error('Error polling: ' + httpStatus);
+                            stopPolling = true;
+                    }
+                })
+                .always(function() {
+                    if (pollTimerCount > pollForMax ||
+                        backoff > maxBackoff ||
+                        stopPolling === true) {
+                        closeCb();
+                        pollTimerCount = pollTimerCount + pollInterval;
+                    }
+                });
         };
 
         console.debug('Poll: ' + pollUrl);
-        pollTimer = setInterval(function(){
-            $.ajax({
-                url: pollUrl,
-                timeout: 3000,
-                success: function(pollData){
-                    pollTimerCount += pollInterval;
+        restartPolling();
 
-                    // Ignore html responses (like the redirection from Shibboleth)
-                    if(typeof(pollData) === 'object'){
-                      if(pollData.state === 1 || pollTimerCount > pollForMax){
-                          var cloudUserId;
-                          if(pollData.state === 1 ){
-                              cloudUserId = pollData.userid;
-                              _this.setCloudLogin(cloudUserId);
-                          }
-
-                          closeCb(cloudUserId);
-                      }
-                    }
-                },
-                error: function(error){
-                    console.error("Problem polling api: " + error.statusText);
-                    closeCb();
-                },
-            });
-        }, pollInterval);
-
-        if(cbrowser){
+        if (typeof cbrowser === 'function') {
             // caller may want access to child browser reference
             cbrowser(cb);
         }
