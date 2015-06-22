@@ -63,7 +63,7 @@ define(['utils'], function(utils){
      */
     var doLoginLocal = function(callback, cbrowser, loginUrl) {
         //loginWithPolling(callback, loginUrl, cbrowser);
-        loginWithShiboleth(callback, loginUrl, loginUrl, cbrowser);
+        loginWithShibboleth(callback, loginUrl, loginUrl, cbrowser);
     };
 
     /**
@@ -162,7 +162,7 @@ define(['utils'], function(utils){
         }
     };
 
-    var loginWithShiboleth = function(callback, loginUrl, cbrowser) {
+    var loginWithShibboleth = function(callback, loginUrl, cbrowser) {
         var pollUrl = loginUrl;
 
         var cb = window.open(pollUrl, '_blank', 'location=no');
