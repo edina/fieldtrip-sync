@@ -168,20 +168,24 @@ define(['utils'], function(utils){
         var cb = window.open(pollUrl, '_blank', 'location=no');
 
         cb.addEventListener('loadstop', function(event) {
+            var cloudUserId;
             console.debug(event.type + ' - ' + event.url);
 
             // Browser was redirected to the desired location
             if (loginUrl === event.url) {
                 $.ajax({ url: pollUrl, dataType: 'json'})
                     .done(function(pollData) {
-                        var cloudUserId;
-
                         if (pollData.state === 1) {
                             cloudUserId = pollData.userid;
                             _this.setCloudLogin(cloudUserId);
-                            callback(cloudUserId);
                         }
-
+                    })
+                    .fail(function(error, status, httpStatus) {
+                        console.debug('Error fetching the username' + httpStatus);
+                        utils.inform('Error during the login' + status);
+                    })
+                    .always(function() {
+                        utils.doCallback(callback, cloudUserId);
                         cb.close();
                     });
             }
@@ -374,9 +378,10 @@ define(['utils'], function(utils){
                 console.debug("check if user is logged in");
                 var user = getCloudLogin();
                 if(user !== null && user.id){
-                    var url = this.getCloudProviderUrl() + '/auth/'+this.getProvider();
-                    if (user.id !== "local") {
-                        url += '/'+user.id;
+                    var provider = this.getProvider();
+                    var url = this.getCloudProviderUrl() + '/auth/' + provider;
+                    if (provider !== 'local') {
+                        url += '/' + user.id;
                     }
 
                     console.debug("Check user with: " + url);
