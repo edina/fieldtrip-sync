@@ -63,7 +63,7 @@ define(['records', 'map', 'utils', './pcapi'],
         };
 
         /**
-         * get rid of filesystem on files
+         * get rid of full path from files inside the record.json
          * @param {String/Object} the element tha contains the images' paths
          * @returns {String/Object} of the filenames
          */
