@@ -62,6 +62,26 @@ define(['records', 'map', 'utils', './pcapi'],
             return name;
         };
 
+        /**
+         * get rid of filesystem on files
+         * @param {String/Object} the element tha contains the images' paths
+         * @returns {String/Object} of the filenames
+         */
+        var processAssetField = function(assetFieldValue){
+            var res;
+            if(typeof(assetFieldValue) === "string"){
+                res = getAssetFileName(assetFieldValue);
+            }
+            else if(typeof(assetFieldValue) === "object"){
+                var newImages = [];
+                for(var j=0; j<assetFieldValue.length;j++){
+                    newImages.push(getAssetFileName(assetFieldValue[j]));
+                }
+                res = newImages;
+            }
+            return res;
+        };
+
         if( typeof(processedRecord.geometry) === 'object' &&
             processedRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
@@ -70,7 +90,7 @@ define(['records', 'map', 'utils', './pcapi'],
             // convert asset URLs to simple filename
             $.each(processedRecord.properties.fields, function(i, field){
                 if(field.val && records.isAsset(field)){
-                    field.val = getAssetFileName(field.val);
+                    field.val = processAssetField(field.val);
                 }
             });
 
@@ -106,6 +126,56 @@ define(['records', 'map', 'utils', './pcapi'],
                 }
             };
 
+            /**
+             * upload assets
+             * @param {String} file full path of asset
+             * @param {String} fileName filename of asset
+             * @param {Object} options upload options
+             */
+            var uploadAsset = function(file, fileName, options){
+                var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
+                console.debug("Asset url is "+assetUrl);
+
+                options.fileName = fileName;
+                options.chunkedMode = false;
+
+                setTimeout(function(){
+                    var ft = new FileTransfer();
+                    ft.upload(
+                        file,
+                        encodeURI(assetUrl),
+                        function(result){
+                            //utils.printObj(result);
+                            var success;
+                            try{
+                                var res = JSON.parse(result.response);
+                                if(res.error === 0){
+                                    success = true;
+                                }
+                                else{
+                                    success = false;
+                                    console.error(res.msg);
+                                }
+                            }catch(e){
+                                console.debug('Non json response');
+                                console.debug(result);
+                                success = false;
+                            }finally{
+                                finished(success);
+                            }
+                        },
+                        function(error){
+                            utils.printObj(error);
+                            console.error("Problem uploading asset: " +
+                                            assetUrl + ", error = " + error.exception);
+                            // No user message but pass the FileTransferError
+                            finished(false, null, error);
+                        },
+                        options
+                    );
+                }, 1000);
+            };
+
             //console.debug("Post: " + recordDir);
             pcapi.saveItem(userId, "records", processedRecord, function(status, data){
                 if(status){
@@ -138,47 +208,15 @@ define(['records', 'map', 'utils', './pcapi'],
                                 options.mimeType = "text/xml";
                             }
 
-                            var fileName = getAssetFileName(field.val);
-                            var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
-                            console.debug("Asset url is "+assetUrl);
-
-                            options.fileName = fileName;
-                            options.chunkedMode = false;
-
-                            setTimeout(function(){
-                                var ft = new FileTransfer();
-                                ft.upload(
-                                    field.val,
-                                    encodeURI(assetUrl),
-                                    function(result){
-                                        //utils.printObj(result);
-                                        var success;
-                                        try{
-                                            var res = JSON.parse(result.response);
-                                            if(res.error === 0){
-                                                success = true;
-                                            }else{
-                                                success = false;
-                                                console.error(res.msg);
-                                            }
-                                        }catch(e){
-                                            console.debug('Non json response');
-                                            console.debug(result);
-                                            success = false;
-                                        }finally{
-                                            finished(success);
-                                        }
-                                    },
-                                    function(error){
-                                        utils.printObj(error);
-                                        console.error("Problem uploading asset: " +
-                                                      assetUrl + ", error = " + error.exception);
-                                        // No user message but pass the FileTransferError
-                                        finished(false, null, error);
-                                    },
-                                    options
-                                );
-                            }, 1000);
+                            var fileName = processAssetField(field.val);
+                            if(typeof(fileName) === "string"){
+                                uploadAsset(field.val, fileName, options);
+                            }
+                            else if(typeof(fileName) === "object"){
+                                for(var j=0; j<fileName.length;j++){
+                                    uploadAsset(field.val[j], fileName[j], options);
+                                }
+                            }
                         }
                     });
 
