@@ -196,7 +196,6 @@ define(['records', 'map', 'utils', './pcapi'],
                     $.each(record.properties.fields, function(i, field){
                         var type = records.typeFromId(field.id);
                         if(records.isAsset(field, type) && field.val !== null){
-                            ++assetCount;
                             var options = new FileUploadOptions();
 
                             if(type === 'audio'){
@@ -210,9 +209,11 @@ define(['records', 'map', 'utils', './pcapi'],
 
                             var fileName = processAssetField(field.val);
                             if(typeof(fileName) === "string"){
+                                ++assetCount;
                                 uploadAsset(field.val, fileName, options);
                             }
                             else if(typeof(fileName) === "object"){
+                                assetCount = assetCount+fileName.length;
                                 for(var j=0; j<fileName.length;j++){
                                     uploadAsset(field.val[j], fileName[j], options);
                                 }
