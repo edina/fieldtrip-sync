@@ -137,6 +137,48 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
                 }
             });
         });
+
+        //the folder name of that derives from the editorName without the extension
+        var editorFolder = editorName.substr(0, editorName.lastIndexOf('.'));
+        //radio and checkbox are the elements that might have pictures
+        var imageTypeOptions = ["checkbox", "radio"];
+        //download images that are part of the editor
+        $.each(imageTypeOptions, function(index, type) {
+            $form.find('input[type="'+type+'"]').each(function(){
+                var $prev = $(this).prev();
+                if($prev.is('img')){
+                    var elementValue = $prev.attr("src");
+                    var options = {};
+                    if (group === records.EDITOR_GROUP.PUBLIC) {
+                        options.userId = pcapi.getAnonymousUserId();
+                        options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                    }
+                    else {
+                        options.userId = pcapi.getUserId();
+                        options.localDir = records.getEditorsDir();
+                    }
+                    file.createDir({
+                        'parent': options.localDir,
+                        'name': editorFolder,
+                        'success': function(dir){
+                            options.localDir = dir;
+                            console.log("folder " + options.localDir.toURL() + " was created");
+                        }
+                    });
+                    options.remoteDir = "editors";
+                    options.fileName = elementValue;
+                    options.targetName = editorFolder+"/"+elementValue;
+                    downloadItem(
+                        options,
+                        function() {
+                            console.debug('Asset ' + elementValue + ' downloaded');
+                        },
+                        function() {
+                            console.error('Error downloading ' + elementValue);
+                        });
+                }
+            });
+        });
     };
 
     records.addProcessEditor(downloadAssets);
