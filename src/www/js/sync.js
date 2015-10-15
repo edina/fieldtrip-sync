@@ -354,15 +354,14 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                 // sync uploaded records with dropbox
                 if(pcapi.getUser().cursor === undefined){
                     // no cursor found do a full sync
-                    download.downloadEditors(function(success){
-                        if(success){
+                    download.downloadEditorsOrSurveys()
+                        .done(function() {
                             download.downloadRecords(doUpload, options.callback);
-                        }
-                        else{
+                        })
+                        .fail(function() {
                             $.mobile.loading('hide');
                             utils.inform("Problem syncing editors.");
-                        }
-                    });
+                        });
                 }
                 else{
                     // sync using cursor
@@ -622,12 +621,17 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
     $(document).on(
         'vclick',
         '.sync-download-button',
-        function(){
+        function() {
             utils.showPageLoadingMsg('Download Editors ...');
-            download.downloadEditors(function(){
-                $.mobile.loading('hide');
-                $.mobile.changePage('capture.html');
-            });
+            download.downloadEditorsOrSurveys()
+                .done(function() {
+                    $.mobile.changePage('capture.html');
+                    $.mobile.loading('hide');
+                })
+                .fail(function(err) {
+                    console.error(err);
+                    utils.informError(err);
+                });
         }
     );
 

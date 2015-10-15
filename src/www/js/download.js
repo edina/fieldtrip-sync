@@ -47,6 +47,39 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
     var PRIVATE_USER_FORM_PATH = 'editors';
 
     /**
+     * Download the editors or surveys if the formspath variable is present
+     * @returns a {Promise} that is resolved when the process is finished
+     *     or is rejected with an error message
+     */
+    var downloadEditorsOrSurveys = function() {
+        var deferred = $.Deferred();
+        var _this = this;
+        var config = utils.getConfig();
+        var fetchedItems;
+
+        if ('formspath' in config) {
+            fetchedItems =
+                records.deleteAllEditors()
+                    .then(downloadSurveys)
+                    .then(function(entries) {
+                        return records.addEditors(entries, records.EDITOR_GROUP.PRIVATE);
+                    });
+        }
+        else {
+            fetchedItems =
+                records.deleteAllEditors()
+                    .then(function() {
+                        var localDir = records.getEditorsDir();
+                        var remoteDir = PRIVATE_USER_FORM_PATH;
+
+                        return _this.downloadEditors(localDir, remoteDir);
+                    });
+        }
+
+        return fetchedItems;
+    };
+
+    /**
      * Download item from cloud provider.
      * @param options:
      *   userId - User id (optional)
@@ -57,7 +90,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
      * @param success Function will be called when item is successfully downloaded.
      * @param error Function will be called when an error has occurred.
      */
-    var downloadItem = function(options, success, error){
+    var downloadItem = function(options, success, error) {
         var itemUrl = pcapi.buildUrl(options.remoteDir, options.fileName);
         //if there's a userId then change the userID
         if(options.userId){
@@ -67,6 +100,49 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
         var target = file.getFilePath(options.localDir)+'/'+options.targetName;
 
         file.ftDownload(itemUrl, target, success, error);
+    };
+
+    /**
+     * Download a list of items
+     * @param items {Array} an array of items to download, each item is
+     *   described by an options {Object} as expected for the downloadItem
+     *   function:
+     *     - fileName {String} the remote filename
+     *     - remoteDir {String} the remote path
+     *     - localDir {FileEntry} where the file will be stored
+     *     - targetName {String} the local name for the file
+     * @returns {Promise} a promise that resolved in an Array of entries {FileEntry}
+     */
+    var downloadItems = function(items) {
+        var fetchedFileEntries;
+        var downloadedItems;
+
+        downloadedItems = items.map(function(item) {
+            var deferred = $.Deferred();
+            downloadItem(item, deferred.resolve, deferred.reject);
+            return deferred.promise();
+        });
+
+        fetchedFileEntries =
+            $.when.apply(null, downloadedItems)
+                // pack the resolved values in an Array
+                .then(function() {
+                    return Array.prototype.slice.call(arguments);
+                });
+
+        return fetchedFileEntries;
+    };
+
+    /**
+     * Download surveys
+     * @returns a promise that resolves in an {Array} of {FileEntry}
+     */
+    var downloadSurveys = function() {
+        var formspath = utils.getConfig().formspath;
+
+        return fetchItems(formspath)
+                .then(normalizeSurveys)
+                .then(downloadItems);
     };
 
     /**
@@ -208,6 +284,64 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
         });
     };
 
+    /**
+     * Wraps the pcapi call in a {Promise}
+     *
+     * @param itemsType {String} with the name of the objects to retrieve
+     * @returns a {Promise} that resolves in usually an {Array} of {Objects}
+     *     of the asked type
+     */
+    var fetchItems = function(itemsType) {
+        var deferred = $.Deferred();
+
+        var options = {
+            remoteDir: itemsType
+        };
+
+        pcapi.getItems(options, function(success, items) {
+            if (success) {
+                deferred.resolve(items);
+            }
+            else {
+                deferred.reject('Network error');
+            }
+
+        });
+
+        return deferred.promise();
+    };
+
+    /**
+     * Takes an {Array} of {Object} returned from the pcapi surveys call and
+     * add some extra info for make it compatible with the addEditor function
+     * @param items an {Array} of {Objects} where each item has:
+     *     - metadata {Array} of {String} with the name of each survey
+     *     - names {Array} of {String} with the alias of each survey
+     * @returns {Array} an array of items each item is described by an options
+     *     {Object} as expected for the downloadItem function:
+     *     - fileName {String} the remote filename
+     *     - remoteDir {String} the remote path
+     *     - localDir {FileEntry} where the file will be stored
+     *     - targetName {String} the local name for the file
+     */
+    var normalizeSurveys = function(items) {
+        var surveys;
+        var metadata = items.metadata || [];
+        var localDir = records.getEditorsDir();
+        var remoteDir = 'surveys';
+
+        surveys = metadata.map(function(name) {
+            return {
+                fileName: name,
+                remoteDir: remoteDir,
+                localDir: localDir,
+                targetName: name + '.edtr'
+            };
+        });
+
+        return surveys;
+    };
+
     records.addProcessEditor(downloadAssets);
 
 return {
@@ -241,23 +375,24 @@ return {
     },
 
     /**
-     * Download editors from cloud provider.
-     * @param callback Function executed after sync is complete.
+     * Download the editors or surveys
      */
-    downloadEditors: function(callback) {
-        var self = this;
-        var config = utils.getConfig();
-        if("formspath" in config){
-            PRIVATE_USER_FORM_PATH = config.formspath;
-        }
-        records.deleteAllEditors(function(){
-            self.downloadItems(records.getEditorsDir(), PRIVATE_USER_FORM_PATH, function(success){
-                callback(success);
-            });
-        });
-    },
+    downloadEditorsOrSurveys: downloadEditorsOrSurveys,
 
+    /**
+     * Download an item from an {Object} of options
+     */
     downloadItem: downloadItem,
+
+    /**
+     * Download an {Array} of items from and {Array} of {Object} option
+     */
+    downloadItems: downloadItems,
+
+    /**
+     * Download an {Array} of surveys
+     */
+    downloadSurveys: downloadSurveys,
 
     /**
      * Download items from cloud provider.
@@ -265,13 +400,16 @@ return {
      * @param remoteDir the name of the remote directory
      * @param callback Function executed after sync is complete.
      */
-    downloadItems: function(localDir, remoteDir, callback) {
+    downloadEditors: function(localDir, remoteDir, callback) {
+        var deferred = $.Deferred();
+
         utils.inform("Sync "+remoteDir+" ...");
 
         var downloads = [];
         //var userId = pcapi.getUserId();
 
         var finished = function(success){
+            deferred.resolve(success);
             utils.doCallback(callback, success, downloads);
         };
 
@@ -327,6 +465,8 @@ return {
                 }
             }
         }, this));
+
+        return deferred.promise();
     },
 
     /**
