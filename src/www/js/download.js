@@ -131,10 +131,25 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
                                 if(utils.endsWith(assetName, ".zip")) {
                                     var fileUrl = entry.toURL();
                                     var fileUrlNoExtension = fileUrl.substr(0, fileUrl.lastIndexOf("."));
-                                    var targetUrl = fileUrlNoExtension.substr(0, fileUrlNoExtension.lastIndexOf("-")) + "/" + assetName.substr(0, assetName.lastIndexOf("."));
+                                    var subfolderName = assetName.substr(0, assetName.lastIndexOf("."));
+                                    var targetUrl = fileUrlNoExtension.substr(0, fileUrlNoExtension.lastIndexOf("-")) + "/" + subfolderName;
                                     zip.unzip(fileUrl, targetUrl, function(result){
                                         if(result === 0) {
                                             file.deleteFile(assetName, options.localDir);
+                                            //rename json file
+                                            file.findFile(".json", targetUrl).done(function(dirEntry, fileEntry){
+                                                file.moveTo({
+                                                    "path": fileEntry,
+                                                    "to": dirEntry,
+                                                    "newName": subfolderName+".json",
+                                                    'success': function(newEntry){
+                                                        console.log("The file was moved here "+newEntry.toURL());
+                                                    },
+                                                    'error': function(error){
+                                                        console.error("There was an error with moving file "+fileEntry.toURL());
+                                                    }
+                                                });
+                                            });
                                         }
                                     });
                                 }
