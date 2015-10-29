@@ -248,7 +248,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
         //download images that are part of the editor
         $.each(imageTypeOptions, function(index, type) {
             $form.find('input[type="'+type+'"]').each(function(){
-                var $prev = $(this).prev();
+                var $prev = $(this).prev().find('img');
                 if($prev.is('img')){
                     var elementValue = $prev.attr("src");
                     var options = {};
