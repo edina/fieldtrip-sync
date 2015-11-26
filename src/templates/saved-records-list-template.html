@@ -1,6 +1,5 @@
 <li id="<%= id %>">
-
-<div class="ui-grid-b">
+<div class="ui-grid-c">
 
     <%if (annotation.isIncomplete){ %>
         <div class="ui-block-a saved-records-list-synced-incomplete"></div>
@@ -13,8 +12,11 @@
     <div class="ui-block-c">
         <a href="#" class="saved-records-delete" data-role="button" data-icon="delete" data-iconpos="notext" data-theme="b"></a>
     </div>
+    <div class="ui-block-d">
+        <a href="#" class="saved-records-edit" data-role="button" data-icon="edit" data-iconpos="notext" data-theme="b"></a>
+    </div>
 
-    <%if (layout === 'records-grid') { %>
+    <% if (layout === 'records-grid') { %>
     <div class="record-extra">
 
         <% _.each(fields, function(field) { %>
@@ -26,12 +28,12 @@
         <%}%>
 
         <% if (type === "image") { %>
-            <img class="saved-records-view" src="<%=field.val%>" width="100%"/>
+            <img class="saved-records-view" src="<%=field.val%>" width="100%">
         <%}%>
 
         <% if (type === "audio") { %>
         <p>Audio Recording</p>
-        <img id="audio-icon" src="css/images/audio.png" width="100%"/>
+        <img id="audio-icon" src="css/images/audio.png" width="100%">
         <%}%>
 
         <% }); %>
