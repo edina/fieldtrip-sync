@@ -174,6 +174,37 @@ define(['records', 'map', 'utils', './pcapi'],
                         options
                     );
                 }, 1000);
+
+                // if configured, create thumbnail of image
+                if(utils.str2bool(utils.getConfig().clientthumbgen)){
+                    // append canvas to page
+                    var canvasId = "canvas-" + fileName;
+                    $('#saved-records-page').append('<canvas id="' + canvasId + '" style="display: none;"></canvas>');
+
+                    var thumbSize = 100;
+                    var canvas = document.getElementById(canvasId);
+                    canvas.width = thumbSize;
+                    canvas.height = thumbSize;
+                    var c = canvas.getContext("2d");
+                    var img = new Image();
+                    img.onload = function(e) {
+                        c.drawImage(this, 0, 0, thumbSize, thumbSize);
+                        var b64 = canvas.toDataURL("image/jpeg").split(',')[1];
+                        var tUrl = assetUrl.substring(0, assetUrl.lastIndexOf(".")) + "_thumb.jpg";
+                        $.ajax({
+                            type: "POST",
+                            url: tUrl + "?base64=true",
+                            data: b64,
+                            success: function(){
+                                //
+                            },
+                            error: function(jqXHR, status, error){
+                                console.error("Problem posting " + tUrl + ": " + error);
+                            },
+                        });
+                    };
+                    img.src = file;
+                }
             };
 
             //console.debug("Post: " + recordDir);
