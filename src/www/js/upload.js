@@ -69,7 +69,8 @@ define(['records', 'map', 'utils', './pcapi'],
             processedRecord.geometry.coordinates !== undefined){
             // convert remote record coords to WGS84
             var coords = map.pointToExternal(processedRecord.geometry.coordinates);
-            processedRecord.geometry.coordinates = [coords.lon, coords.lat];
+            processedRecord.geometry.coordinates[0] = coords.lon;
+            processedRecord.geometry.coordinates[1] = coords.lat;
 
             // convert asset URLs to simple filename
             $.each(processedRecord.properties.fields, function(i, field){
