@@ -127,6 +127,47 @@ define(['records', 'map', 'utils', './pcapi'],
             };
 
             /**
+             * Create a thumbnail of image using HTML5 Canvas and upload to pcapi
+             * @param {String} file full path of asset
+             * @param {String} fileName filename of asset
+             * @param {String} imageUrl The remote url of the original image
+             * @return {object} promise
+             */
+            var uploadThumbnail = function(file, fileName, imageUrl){
+                var deferred = new $.Deferred();
+
+                // append canvas to page
+                var canvasId = "canvas-" + fileName;
+                $('#saved-records-page').append('<canvas id="' + canvasId + '" style="display: none;"></canvas>');
+
+                var thumbSize = 100;
+                var canvas = document.getElementById(canvasId);
+                canvas.width = thumbSize;
+                canvas.height = thumbSize;
+                var c = canvas.getContext("2d");
+                var img = new Image();
+                img.onload = function(e) {
+                    c.drawImage(this, 0, 0, thumbSize, thumbSize);
+                    var b64 = canvas.toDataURL("image/jpeg").split(',')[1];
+                    var tUrl = imageUrl.substring(0, imageUrl.lastIndexOf(".")) + "_thumb.jpg";
+                    $.ajax({
+                        type: "POST",
+                        url: tUrl + "?base64=true",
+                        data: b64,
+                        success: function(){
+                            deferred.resolve();
+                        },
+                        error: function(jqXHR, status, error){
+                            deferred.reject("Problem posting " + tUrl + ": " + error);
+                        },
+                    });
+                };
+                img.src = file;
+
+                return deferred.promise();
+            };
+
+            /**
              * upload assets
              * @param {String} file full path of asset
              * @param {String} fileName filename of asset
@@ -150,18 +191,29 @@ define(['records', 'map', 'utils', './pcapi'],
                             try{
                                 var res = JSON.parse(result.response);
                                 if(res.error === 0){
-                                    success = true;
+                                    // if configured, create thumbnail of image
+                                    if(utils.str2bool(utils.getConfig().clientthumbgen)){
+                                        var tn = uploadThumbnail(file, fileName, assetUrl);
+                                        tn.done(function(){
+                                            finished(true);
+                                        });
+                                        tn.fail(function(err){
+                                            finished(false);
+                                        });
+                                    }
+                                    else{
+                                        finished(true);
+                                    }
                                 }
                                 else{
-                                    success = false;
                                     console.error(res.msg);
+                                    finished(false);
                                 }
-                            }catch(e){
+                            }
+                            catch(e){
                                 console.debug('Non json response');
                                 console.debug(result);
-                                success = false;
-                            }finally{
-                                finished(success);
+                                finished(false);
                             }
                         },
                         function(error){
@@ -174,37 +226,6 @@ define(['records', 'map', 'utils', './pcapi'],
                         options
                     );
                 }, 1000);
-
-                // if configured, create thumbnail of image
-                if(utils.str2bool(utils.getConfig().clientthumbgen)){
-                    // append canvas to page
-                    var canvasId = "canvas-" + fileName;
-                    $('#saved-records-page').append('<canvas id="' + canvasId + '" style="display: none;"></canvas>');
-
-                    var thumbSize = 100;
-                    var canvas = document.getElementById(canvasId);
-                    canvas.width = thumbSize;
-                    canvas.height = thumbSize;
-                    var c = canvas.getContext("2d");
-                    var img = new Image();
-                    img.onload = function(e) {
-                        c.drawImage(this, 0, 0, thumbSize, thumbSize);
-                        var b64 = canvas.toDataURL("image/jpeg").split(',')[1];
-                        var tUrl = assetUrl.substring(0, assetUrl.lastIndexOf(".")) + "_thumb.jpg";
-                        $.ajax({
-                            type: "POST",
-                            url: tUrl + "?base64=true",
-                            data: b64,
-                            success: function(){
-                                //
-                            },
-                            error: function(jqXHR, status, error){
-                                console.error("Problem posting " + tUrl + ": " + error);
-                            },
-                        });
-                    };
-                    img.src = file;
-                }
             };
 
             //console.debug("Post: " + recordDir);
