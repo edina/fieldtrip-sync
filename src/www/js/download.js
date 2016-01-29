@@ -155,6 +155,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
      */
     var downloadAssets = function(editorName, html, group, online) {
         var $form = $(html);
+        //var form = JSON.parse(text);
         var assetType;
         var assetOptions;
 
@@ -342,7 +343,8 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
         return surveys;
     };
 
-    records.addProcessEditor(downloadAssets);
+    // remove for the time being - waiting for pcapi changes
+    //records.addProcessEditor(downloadAssets);
 
 return {
 
