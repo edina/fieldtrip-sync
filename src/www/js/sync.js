@@ -64,7 +64,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
             var editor = {};
 
             // Skip non editors
-            if (!editorsData.metadata[i].endsWith('.edtr')) {
+            if (!editorsData.metadata[i].endsWith('.json')) {
                 continue;
             }
 
