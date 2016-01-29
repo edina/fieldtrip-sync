@@ -370,7 +370,7 @@ return {
         var fileName = editor.substring(editor.lastIndexOf('/') + 1, editor.length);
         var options = {"userId": userId, "fileName": editor, "remoteDir": "editors", "localDir": path, "targetName": editor};
         this.downloadItem(options, function(entry){
-            if(entry.name.indexOf(".edtr") > -1){
+            if(entry.name.indexOf(".json") > -1){
                 records.addEditor(entry, type);
             }
         });
