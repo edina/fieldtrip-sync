@@ -29,9 +29,15 @@ DAMAGE.
 "use strict";
 
 
-/* jshint ignore:start */
-define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './download', 'file'], function( // jshint ignore:line
-    records, map, settings, utils, pcapi, upload, download, file){/* jshint ignore:end */
+define(['records',
+        'map',
+        'settings',
+        'utils',
+        './pcapi',
+        './upload',
+        './download',
+        'file'],
+        function(records, map, settings, utils, pcapi, upload, download, file){// jshint ignore:line
 
     /**
      * Set up buttons according to whether user if logged in.
