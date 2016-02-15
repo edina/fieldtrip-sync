@@ -173,7 +173,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
 
                             options.remoteDir = assetOptions.remoteDir;
                             options.fileName = assetName;
-                            options.targetName = assetName;
+                            options.targetName = editorFolder + "/" + assetName;
 
                             switch (assetType) {
                                 case 'dtree':
