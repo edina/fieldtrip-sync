@@ -28,10 +28,16 @@ DAMAGE.
 
 "use strict";
 
-/* jshint multistr: true */
 
-define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './download', 'file'], function( // jshint ignore:line
-    records, map, settings, utils, pcapi, upload, download, file){
+define(['records',
+        'map',
+        'settings',
+        'utils',
+        './pcapi',
+        './upload',
+        './download',
+        'file'],
+        function(records, map, settings, utils, pcapi, upload, download, file){// jshint ignore:line
 
     /**
      * Set up buttons according to whether user if logged in.
@@ -642,6 +648,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
             $('body').one('_pageshow', '#editors-list-page', function(){
 
                 // Request the active and available editors
+                $.mobile.loading('show');
                 var availableEditors = download.listEditorsPromise(pcapi.getAnonymousUserId());
                 var editors = records.getEditorsByGroup(records.EDITOR_GROUP.PUBLIC);
                 var activeEditors = [];
@@ -653,6 +660,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                 }
 
                 availableEditors.fail(function(err){
+                    $.mobile.loading('hide');
                     utils.inform("Problem fetching public editors");
                     console.error(err);
                 });
@@ -660,6 +668,7 @@ define(['records', 'map', 'settings', 'utils', './pcapi', './upload', './downloa
                 availableEditors
                     .done(function(available){
                         createListEditors(available, activeEditors, '#editors-list-page ul#editors-list');
+                        $.mobile.loading('hide');
                     });
             });
 
