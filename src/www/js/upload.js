@@ -33,8 +33,9 @@ DAMAGE.
 /**
  * Module deals with uploading records to Personal Cloud.
  */
+/* jshint ignore:start */
 define(['records', 'map', 'utils', './pcapi'],
-       function(records, map, utils, pcapi){// jshint ignore:line
+       function(records, map, utils, pcapi){/* jshint ignore:end */
 
     /**
      * Create remote record.
@@ -246,8 +247,8 @@ define(['records', 'map', 'utils', './pcapi'],
 
                     // create any assets associated with record
                     $.each(record.properties.fields, function(i, field){
-                        var type = records.typeFromId(field.id);
-                        if(records.isAsset(field, type) && field.val !== null){
+                        var type = field.type;
+                        if(records.isAsset(field) && field.val !== null){
                             var options = new FileUploadOptions();
 
                             if(type === 'audio'){
