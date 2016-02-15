@@ -33,9 +33,10 @@ DAMAGE.
 /**
  * Module deals with uploading records to Personal Cloud.
  */
-/* jshint ignore:start */
-define(['records', 'map', 'utils', './pcapi'],
-       function(records, map, utils, pcapi){/* jshint ignore:end */
+define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
+    records, map, utils, pcapi, pcapiold){// jshint ignore:line
+
+    console.log(pcapiold.getCloudProviderUrl());
 
     /**
      * Create remote record.
@@ -43,8 +44,6 @@ define(['records', 'map', 'utils', './pcapi'],
      * @param callback
      */
     var createRemoteRecord = function(id, userId, record, callback) { //jshint ignore:line
-        var cloudProviderUrl = pcapi.getCloudProviderUrl();
-
         // clone the record for preprocessing it before upload it
         // note that original record is used for uploading the assets because
         // contains the fullPath to them
@@ -115,8 +114,13 @@ define(['records', 'map', 'utils', './pcapi'],
                         utils.inform(msg);
                     }else{
                         if(utils.getConfig().ogcsync){
-                            pcapi.exportRecord(userId, record.name, function(result){
-                                console.log(result);
+                            var exprt  = pcapi.exportRecord(userId, record.name);
+                            exprt.done(function(){
+                                console.log("****");
+                                //console.log(result);
+                            });
+                            exprt.fail(function(error){
+                                console.error("Problem with export: " + error);
                             });
                         }
                     }
@@ -175,7 +179,7 @@ define(['records', 'map', 'utils', './pcapi'],
              * @param {Object} options upload options
              */
             var uploadAsset = function(file, fileName, options){
-                var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
+                var assetUrl = pcapiold.buildUserUrl(userId, "records", record.name) + '/' + fileName;
                 console.debug("Asset url is "+assetUrl);
 
                 options.fileName = fileName;
@@ -230,7 +234,7 @@ define(['records', 'map', 'utils', './pcapi'],
             };
 
             //console.debug("Post: " + recordDir);
-            pcapi.saveItem(userId, "records", processedRecord, function(status, data){
+            pcapiold.saveItem(userId, "records", processedRecord, function(status, data){
                 if(status){
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
@@ -312,10 +316,10 @@ define(['records', 'map', 'utils', './pcapi'],
 
                 switch(annotation.editorGroup){
                 case 'public':
-                    userId = pcapi.getAnonymousUserId();
+                    userId = pcapiold.getAnonymousUserId();
                     break;
                 default:
-                    userId = pcapi.getUserId();
+                    userId = pcapiold.getUserId();
                 }
 
                 if(!userId){
