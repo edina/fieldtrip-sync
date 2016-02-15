@@ -32,7 +32,8 @@ DAMAGE.
  * Module deals with download records/forms from the Personal Cloud.
  */
 /* global zip */
-define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
+/* jshint ignore:start */
+define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore:end */
     records, map, file, utils, pcapi){
 
     var EDITOR_ASSETS = {
@@ -153,133 +154,137 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
      * @param group the records.EDITOR_GROUP
      * @param online boolean value if the processing is held online
      */
-    var downloadAssets = function(editorName, html, group, online) {
-        var $form = $(html);
-        //var form = JSON.parse(text);
+    var downloadAssets = function(editorName, text, group, online) {
+        var form = JSON.parse(text);
         var assetType;
         var assetOptions;
+        //the folder name of that derives from the editorName without the extension
+        var editorFolder = editorName.substr(0, editorName.lastIndexOf('.'));
 
         $.each(EDITOR_ASSETS, function(assetType, assetOptions) {
-            $form.find('input[data-' + assetType + ']').each(function(j, element) {
-                var assetName = $(element).data(assetType);
-                if (assetName !== undefined) {
-                    console.debug(assetName);
+            form.fields.find(function(element, index){
+                if(element.type === assetType){
+                    var assetName =element.properties.filename;
+                    if (assetName !== undefined) {
+                        console.debug(assetName);
 
-                    if (online) {
-                        var options = {};
+                        if (online) {
+                            var options = {};
 
-                        options.remoteDir = assetOptions.remoteDir;
-                        options.fileName = assetName;
-                        options.targetName = assetName;
+                            options.remoteDir = assetOptions.remoteDir;
+                            options.fileName = assetName;
+                            options.targetName = assetName;
 
-                        switch (assetType) {
-                            case 'dtree':
-                                if (group === records.EDITOR_GROUP.PUBLIC) {
-                                    options.userId = pcapi.getAnonymousUserId();
-                                    options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
-                                }
-                                else {
-                                    options.userId = pcapi.getUserId();
-                                    options.localDir = records.getEditorsDir();
-                                }
-                            break;
-                            default: // Other assets get the path from the core
-                                if (group === records.EDITOR_GROUP.PUBLIC) {
-                                    options.userId = pcapi.getAnonymousUserId();
-                                }
-                                else
-                                {
-                                    options.userId = pcapi.getUserId();
-                                }
-                                options.localDir = records.getAssetsDir(assetType);
+                            switch (assetType) {
+                                case 'dtree':
+                                    if (group === records.EDITOR_GROUP.PUBLIC) {
+                                        options.userId = pcapi.getAnonymousUserId();
+                                        options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                                    }
+                                    else {
+                                        options.userId = pcapi.getUserId();
+                                        options.localDir = records.getEditorsDir();
+                                    }
+                                break;
+                                default: // Other assets get the path from the core
+                                    if (group === records.EDITOR_GROUP.PUBLIC) {
+                                        options.userId = pcapi.getAnonymousUserId();
+                                    }
+                                    else
+                                    {
+                                        options.userId = pcapi.getUserId();
+                                    }
+                                    options.localDir = records.getAssetsDir(assetType);
 
-                                if (!options.localDir) {
-                                    console.warn('Not directory defined for asset type: ' + assetType);
-                                    console.warn('Skipping: ' + assetName);
-                                    return;
-                                }
-                        }
+                                    if (!options.localDir) {
+                                        console.warn('Not directory defined for asset type: ' + assetType);
+                                        console.warn('Skipping: ' + assetName);
+                                        return;
+                                    }
+                            }
 
-                        downloadItem(
-                            options,
-                            function(entry) {
-                                console.debug('Asset ' + assetName + ' downloaded');
-                                //for zip files unzip them and delete the zip file
-                                if(utils.endsWith(assetName, ".zip")) {
-                                    var fileUrl = entry.toURL();
-                                    var fileUrlNoExtension = fileUrl.substr(0, fileUrl.lastIndexOf("."));
-                                    var subfolderName = assetName.substr(0, assetName.lastIndexOf("."));
-                                    var targetUrl = fileUrlNoExtension.substr(0, fileUrlNoExtension.lastIndexOf("-")) + "/" + subfolderName;
-                                    zip.unzip(fileUrl, targetUrl, function(result){
-                                        if(result === 0) {
-                                            file.deleteFile(assetName, options.localDir);
-                                            //rename json file
-                                            file.findFile(".json", targetUrl).done(function(dirEntry, fileEntry){
-                                                file.moveTo({
-                                                    "path": fileEntry,
-                                                    "to": dirEntry,
-                                                    "newName": subfolderName+".json",
-                                                    'success': function(newEntry){
-                                                        console.log("The file was moved here "+newEntry.toURL());
-                                                    },
-                                                    'error': function(error){
-                                                        console.error("There was an error with moving file "+fileEntry.toURL());
-                                                    }
+                            downloadItem(
+                                options,
+                                function(entry) {
+                                    console.debug('Asset ' + assetName + ' downloaded');
+                                    //for zip files unzip them and delete the zip file
+                                    if(utils.endsWith(assetName, ".zip")) {
+                                        var fileUrl = entry.toURL();
+                                        var fileUrlNoExtension = fileUrl.substr(0, fileUrl.lastIndexOf("."));
+                                        var subfolderName = assetName.substr(0, assetName.lastIndexOf("."));
+                                        var targetUrl = fileUrlNoExtension.substr(0, fileUrlNoExtension.lastIndexOf("-")) + "/" + subfolderName;
+                                        zip.unzip(fileUrl, targetUrl, function(result){
+                                            if(result === 0) {
+                                                file.deleteFile(assetName, options.localDir);
+                                                //rename json file
+                                                file.findFile(".json", targetUrl).done(function(dirEntry, fileEntry){
+                                                    file.moveTo({
+                                                        "path": fileEntry,
+                                                        "to": dirEntry,
+                                                        "newName": subfolderName+".json",
+                                                        'success': function(newEntry){
+                                                            console.log("The file was moved here "+newEntry.toURL());
+                                                        },
+                                                        'error': function(error){
+                                                            console.error("There was an error with moving file "+fileEntry.toURL());
+                                                        }
+                                                    });
                                                 });
-                                            });
-                                        }
-                                    });
-                                }
-                            },
-                            function() {
-                                console.error('Error downloading ' + assetName);
-                            });
-                    }else {
-                        // TODO: Check the presense of the asset
-                        console.debug('Associated asset: ' + assetName);
+                                            }
+                                        });
+                                    }
+                                },
+                                function() {
+                                    console.error('Error downloading ' + assetName);
+                                });
+                        }else {
+                            // TODO: Check the presense of the asset
+                            console.debug('Associated asset: ' + assetName);
+                        }
                     }
                 }
             });
         });
 
-        //the folder name of that derives from the editorName without the extension
-        var editorFolder = editorName.substr(0, editorName.lastIndexOf('.'));
         //radio and checkbox are the elements that might have pictures
         var imageTypeOptions = ["checkbox", "radio"];
         //download images that are part of the editor
         $.each(imageTypeOptions, function(index, type) {
-            $form.find('input[type="'+type+'"]').each(function(){
-                var $prev = $(this).prev().find('img');
-                if($prev.is('img')){
-                    var elementValue = $prev.attr("src");
-                    var options = {};
-                    if (group === records.EDITOR_GROUP.PUBLIC) {
-                        options.userId = pcapi.getAnonymousUserId();
-                        options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
-                    }
-                    else {
-                        options.userId = pcapi.getUserId();
-                        options.localDir = records.getEditorsDir();
-                    }
-                    file.createDir({
-                        'parent': options.localDir,
-                        'name': editorFolder,
-                        'success': function(dir){
-                            options.localDir = dir;
-                            console.log("folder " + options.localDir.toURL() + " was created");
+            form.fields.find(function(element, index){
+                if(element.type === type) {
+                    element.properties.options.forEach(function(el, i) {
+                        if("image" in el) {
+                            var elementValue = el.image.src;
+                            var options = {};
+                            if (group === records.EDITOR_GROUP.PUBLIC) {
+                                options.userId = pcapi.getAnonymousUserId();
+                                options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                            }
+                            else {
+                                options.userId = pcapi.getUserId();
+                                options.localDir = records.getEditorsDir();
+                            }
+                            file.createDir({
+                                'parent': options.localDir,
+                                'name': editorFolder,
+                                'success': function(dir){
+                                    options.localDir = dir;
+                                    console.log("folder " + options.localDir.toURL() + " was created");
+                                }
+                            });
+                            options.remoteDir = "editors";
+                            options.fileName = editorFolder+"/"+elementValue;
+                            options.targetName = editorFolder+"/"+elementValue;
+                            downloadItem(
+                                options,
+                                function() {
+                                    console.debug('Asset ' + elementValue + ' downloaded');
+                                },
+                                function() {
+                                    console.error('Error downloading ' + elementValue);
+                                });
                         }
                     });
-                    options.remoteDir = "editors";
-                    options.fileName = elementValue;
-                    options.targetName = editorFolder+"/"+elementValue;
-                    downloadItem(
-                        options,
-                        function() {
-                            console.debug('Asset ' + elementValue + ' downloaded');
-                        },
-                        function() {
-                            console.error('Error downloading ' + elementValue);
-                        });
                 }
             });
         });
@@ -344,7 +349,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore
     };
 
     // remove for the time being - waiting for pcapi changes
-    //records.addProcessEditor(downloadAssets);
+    records.addProcessEditor(downloadAssets);
 
 return {
 
