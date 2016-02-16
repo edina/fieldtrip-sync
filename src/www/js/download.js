@@ -162,7 +162,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
         var editorFolder = editorName.substr(0, editorName.lastIndexOf('.'));
 
         $.each(EDITOR_ASSETS, function(assetType, assetOptions) {
-            form.fields.find(function(element, index){
+            form.fields.forEach(function(element, index){
                 if(element.type === assetType){
                     var assetName =element.properties.filename;
                     if (assetName !== undefined) {
@@ -172,7 +172,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
                             var options = {};
 
                             options.remoteDir = assetOptions.remoteDir;
-                            options.fileName = assetName;
+                            options.fileName = editorFolder + "/" +assetName;
                             options.targetName = editorFolder + "/" + assetName;
 
                             switch (assetType) {
