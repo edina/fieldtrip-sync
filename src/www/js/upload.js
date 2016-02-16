@@ -33,17 +33,15 @@ DAMAGE.
 /**
  * Module deals with uploading records to Personal Cloud.
  */
-define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
-    records, map, utils, pcapi, pcapiold){// jshint ignore:line
-
-    console.log(pcapiold.getCloudProviderUrl());
+define(['records', 'map', 'utils', './ext/pcapi'], function(
+    records, map, utils, pcapi){
 
     /**
      * Create remote record.
      * @param record Record object to create remotely.
      * @param callback
      */
-    var createRemoteRecord = function(id, userId, record, callback) { //jshint ignore:line
+    var createRemoteRecord = function(id, userId, record, callback) {
         // clone the record for preprocessing it before upload it
         // note that original record is used for uploading the assets because
         // contains the fullPath to them
@@ -115,9 +113,10 @@ define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
                     }else{
                         if(utils.getConfig().ogcsync){
                             var exprt  = pcapi.exportRecord(userId, record.name);
-                            exprt.done(function(){
-                                console.log("****");
-                                //console.log(result);
+                            exprt.done(function(result){
+                                // TODO: print something sensible
+                                console.log(result);
+                                //utils.printObj(result);
                             });
                             exprt.fail(function(error){
                                 console.error("Problem with export: " + error);
@@ -179,7 +178,7 @@ define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
              * @param {Object} options upload options
              */
             var uploadAsset = function(file, fileName, options){
-                var assetUrl = pcapiold.buildUserUrl(userId, "records", record.name) + '/' + fileName;
+                var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
                 console.debug("Asset url is "+assetUrl);
 
                 options.fileName = fileName;
@@ -234,8 +233,16 @@ define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
             };
 
             //console.debug("Post: " + recordDir);
-            pcapiold.saveItem(userId, "records", processedRecord, function(status, data){
-                if(status){
+
+            var save = pcapi.saveItem({
+                userId: userId,
+                remoteDir: "records",
+                path: record.name,
+                data: processedRecord
+            });
+
+            save.done(function(data){
+                if(data.error === 0){
                     // check if new record name
                     var s = data.path.indexOf('/', 1) + 1;
                     var name = data.path.substr(s, data.path.lastIndexOf('/') - s);
@@ -246,7 +253,6 @@ define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
                         utils.inform(record.name + " renamed to " + name);
                         record.name = name;
                         $('#' + id + ' .saved-records-view > a').text(name);
-
                     }
 
                     // create any assets associated with record
@@ -286,7 +292,10 @@ define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
                     finished(false);
                 }
             });
-
+            save.fail(function(error){
+                console.error(error);
+                finished(false);
+            });
         }
         else{
             console.error("record has no location delete it: " + record.name);
@@ -316,10 +325,10 @@ define(['records', 'map', 'utils', './ext/pcapi', './pcapi'], function(
 
                 switch(annotation.editorGroup){
                 case 'public':
-                    userId = pcapiold.getAnonymousUserId();
+                    userId = utils.getAnonymousUserId();
                     break;
                 default:
-                    userId = pcapiold.getUserId();
+                    userId = pcapi.getUserId();
                 }
 
                 if(!userId){
