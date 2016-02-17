@@ -28,16 +28,16 @@ DAMAGE.
 
 "use strict";
 
+define(function(require) {
+    var records = require('records');
+    var map = require('map');
+    var settings = require('settings');
+    var utils = require('utils');
+    var file = require('file');
 
-define(['records',
-        'map',
-        'settings',
-        'utils',
-        './pcapi',
-        './upload',
-        './download',
-        'file'],
-        function(records, map, settings, utils, pcapi, upload, download, file){// jshint ignore:line
+    var pcapi = require('./ext/pcapi');
+    var upload = require('./upload');
+    var download = require('./download');
 
     /**
      * Set up buttons according to whether user if logged in.
@@ -113,32 +113,31 @@ define(['records',
         $(domElement).listview('refresh');
     };
 
-    /*
+    /**
      * Get the list of providers available for the app
      * @param onsuccess a success callback where to pass the list of providers
      * @param onerror an error callback
      */
     var getProviders = function(onsuccess, onerror){
-        pcapi.getProviders(function(success, data){
-            if(success){
-                var providers = [];
-                for(var key in data){
-                    // Just add selected providers from the app configuration
-                    // or all if none was specified
-                    var pcapiProviders = utils.getPCAPIProviders();
-                    if(pcapiProviders === undefined ||
-                       pcapiProviders.indexOf(key) > -1){
-                        providers.push(key);
-                    }
-                }
-                if(typeof onsuccess === 'function'){
-                    onsuccess(providers);
+        var providers = pcapi.getProviders();
+        providers.done(function(data){
+            var providers = [];
+            for(var key in data){
+                // Just add selected providers from the app configuration
+                // or all if none was specified
+                var pcapiProviders = utils.getPCAPIProviders();
+                if(pcapiProviders === undefined ||
+                   pcapiProviders.indexOf(key) > -1){
+                    providers.push(key);
                 }
             }
-            else{
-                if(typeof onerror === 'function'){
-                    onerror();
-                }
+            if(typeof onsuccess === 'function'){
+                onsuccess(providers);
+            }
+        });
+        providers.fail(function(){
+            if(typeof onerror === 'function'){
+                onerror();
             }
         });
     };
@@ -649,7 +648,7 @@ define(['records',
 
                 // Request the active and available editors
                 $.mobile.loading('show');
-                var availableEditors = download.listEditorsPromise(pcapi.getAnonymousUserId());
+                var availableEditors = download.listEditorsPromise(utils.getAnonymousUserId());
                 var editors = records.getEditorsByGroup(records.EDITOR_GROUP.PUBLIC);
                 var activeEditors = [];
 

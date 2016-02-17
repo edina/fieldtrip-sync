@@ -33,7 +33,7 @@ DAMAGE.
  */
 /* global zip */
 /* jshint ignore:start */
-define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore:end */
+define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ignore:end */
     records, map, file, utils, pcapi){
 
     var EDITOR_ASSETS = {
@@ -139,11 +139,13 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
      * @returns a promise that resolves in an {Array} of {FileEntry}
      */
     var downloadSurveys = function() {
-        var formspath = utils.getConfig().formspath;
+        var options = {
+            remoteDir: utils.getConfig().formspath
+        };
 
-        return fetchItems(formspath)
-                .then(normalizeSurveys)
-                .then(downloadItems);
+        return pcapi.getItems(options)
+            .then(normalizeSurveys)
+            .then(downloadItems);
     };
 
     /**
@@ -178,7 +180,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
                             switch (assetType) {
                                 case 'dtree':
                                     if (group === records.EDITOR_GROUP.PUBLIC) {
-                                        options.userId = pcapi.getAnonymousUserId();
+                                        options.userId = utils.getAnonymousUserId();
                                         options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
                                     }
                                     else {
@@ -188,7 +190,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
                                 break;
                                 default: // Other assets get the path from the core
                                     if (group === records.EDITOR_GROUP.PUBLIC) {
-                                        options.userId = pcapi.getAnonymousUserId();
+                                        options.userId = utils.getAnonymousUserId();
                                     }
                                     else
                                     {
@@ -257,7 +259,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
                             var elementValue = el.image.src;
                             var options = {};
                             if (group === records.EDITOR_GROUP.PUBLIC) {
-                                options.userId = pcapi.getAnonymousUserId();
+                                options.userId = utils.getAnonymousUserId();
                                 options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
                             }
                             else {
@@ -288,33 +290,6 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
                 }
             });
         });
-    };
-
-    /**
-     * Wraps the pcapi call in a {Promise}
-     *
-     * @param itemsType {String} with the name of the objects to retrieve
-     * @returns a {Promise} that resolves in usually an {Array} of {Objects}
-     *     of the asked type
-     */
-    var fetchItems = function(itemsType) {
-        var deferred = $.Deferred();
-
-        var options = {
-            remoteDir: itemsType
-        };
-
-        pcapi.getItems(options, function(success, items) {
-            if (success) {
-                deferred.resolve(items);
-            }
-            else {
-                deferred.reject('Network error');
-            }
-
-        });
-
-        return deferred.promise();
     };
 
     /**
@@ -364,7 +339,7 @@ return {
 
         switch(type){
             case records.EDITOR_GROUP.PUBLIC:
-                userId = pcapi.getAnonymousUserId();
+                userId = utils.getAnonymousUserId();
                 path = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
             break;
             default:
@@ -405,73 +380,68 @@ return {
      * Download items from cloud provider.
      * @param localDir the local directory where things are downloaded
      * @param remoteDir the name of the remote directory
-     * @param callback Function executed after sync is complete.
      */
-    downloadEditors: function(localDir, remoteDir, callback) {
+    downloadEditors: function(localDir, remoteDir) {
         var deferred = $.Deferred();
 
         utils.inform("Sync "+remoteDir+" ...");
 
         var downloads = [];
-        //var userId = pcapi.getUserId();
 
         var finished = function(success){
             deferred.resolve(success);
-            utils.doCallback(callback, success, downloads);
         };
 
-        var downloadOptions = {
+        var items = pcapi.getItems({
             "remoteDir": remoteDir
-        };
-        pcapi.getItems(downloadOptions, $.proxy(function(status, data){
-            if(status === false){
+        });
+        items.done($.proxy(function(data){
+            if(data.metadata.length ===0){
                 // nothing to do
                 utils.inform('No editors to sync');
                 finished(true);
             }
             else{
-                if(data.metadata.length ===0){
-                    // nothing to do
-                    utils.inform('No editors to sync');
-                    finished(true);
-                }
-                else{
-                    var count = 0;
-                    var noOfItems = data.metadata.length;
+                var count = 0;
+                var noOfItems = data.metadata.length;
 
-                    //utils.printObj(data.metadata);
-                    var editorClassObj = {};
+                //utils.printObj(data.metadata);
+                var editorClassObj = {};
 
-                    // do sync
-                    $.each(data.metadata, $.proxy(function(i, item){
-                        // TODO work would correct filename and path
-                        var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
-                        var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
-                        this.downloadItem(options, function(entry) {
-                            var promise;
+                // do sync
+                $.each(data.metadata, $.proxy(function(i, item){
+                    // TODO work would correct filename and path
+                    var fileName = item.substring(item.lastIndexOf('/') + 1, item.length);
+                    var options = {"fileName": fileName, "remoteDir": remoteDir, "localDir": localDir, "targetName": fileName};
+                    this.downloadItem(options, function(entry) {
+                        var promise;
 
-                            if (entry.name.indexOf('.edtr') > -1 || entry.name.indexOf('.') === -1) {
-                                promise = records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
+                        if (entry.name.indexOf('.edtr') > -1 || entry.name.indexOf('.') === -1) {
+                            promise = records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
 
-                                ++count;
-                                promise.done(function() {
-                                    downloads.push(fileName);
-                                });
+                            ++count;
+                            promise.done(function() {
+                                downloads.push(fileName);
+                            });
 
-                                promise.always(function() {
-                                    if (count === noOfItems) {
-                                        finished(true);
-                                    }
-                                });
-                            }
+                            promise.always(function() {
+                                if (count === noOfItems) {
+                                    finished(true);
+                                }
+                            });
+                        }
 
-                        });
+                    });
 
-                        //utils.printObj(data);
-                    }, this));
-                }
+                    //utils.printObj(data);
+                }, this));
             }
         }, this));
+        items.fail(function(error){
+            // nothing to do
+            utils.inform('Problem downloading forms');
+            deferred.error(error);
+        });
 
         return deferred.promise();
     },
