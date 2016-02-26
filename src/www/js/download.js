@@ -32,8 +32,7 @@ DAMAGE.
  * Module deals with download records/forms from the Personal Cloud.
  */
 /* global zip */
-/* jshint ignore:start */
-define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore:end */
+define(['records', 'map', 'file', 'utils', './pcapi'], function(// jshint ignore:line
     records, map, file, utils, pcapi){
 
     var EDITOR_ASSETS = {
@@ -212,7 +211,7 @@ define(['records', 'map', 'file', 'utils', './pcapi'], function(/* jshint ignore
                                         var fileUrl = entry.toURL();
                                         var fileUrlNoExtension = fileUrl.substr(0, fileUrl.lastIndexOf("."));
                                         var subfolderName = assetName.substr(0, assetName.lastIndexOf("."));
-                                        var targetUrl = fileUrlNoExtension.substr(0, fileUrlNoExtension.lastIndexOf("-")) + "/" + subfolderName;
+                                        var targetUrl = fileUrlNoExtension;
                                         zip.unzip(fileUrl, targetUrl, function(result){
                                             if(result === 0) {
                                                 file.deleteFile(assetName, options.localDir);
