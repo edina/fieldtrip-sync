@@ -214,7 +214,7 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
                                         var fileUrl = entry.toURL();
                                         var fileUrlNoExtension = fileUrl.substr(0, fileUrl.lastIndexOf("."));
                                         var subfolderName = assetName.substr(0, assetName.lastIndexOf("."));
-                                        var targetUrl = fileUrlNoExtension.substr(0, fileUrlNoExtension.lastIndexOf("-")) + "/" + subfolderName;
+                                        var targetUrl = fileUrlNoExtension;
                                         zip.unzip(fileUrl, targetUrl, function(result){
                                             if(result === 0) {
                                                 file.deleteFile(assetName, options.localDir);
