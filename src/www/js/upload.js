@@ -178,7 +178,11 @@ define(['records', 'map', 'utils', './ext/pcapi'], function(
              * @param {Object} options upload options
              */
             var uploadAsset = function(file, fileName, options){
-                var assetUrl = pcapi.buildUserUrl(userId, "records", record.name) + '/' + fileName;
+                var path = records.typeFromRecord(record) + "/" + record.name;
+                var assetUrl = pcapi.buildUserUrl(
+                    userId,
+                    "records",
+                    path) + '/' + fileName;
                 console.debug("Asset url is "+assetUrl);
 
                 options.fileName = fileName;
@@ -232,12 +236,10 @@ define(['records', 'map', 'utils', './ext/pcapi'], function(
                 }, 1000);
             };
 
-            //console.debug("Post: " + recordDir);
-
             var save = pcapi.saveItem({
                 userId: userId,
                 remoteDir: "records",
-                path: record.name,
+                path: records.typeFromRecord(record) + "/" + record.name,
                 data: processedRecord
             });
 
