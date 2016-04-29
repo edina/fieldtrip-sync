@@ -27,7 +27,7 @@
     "jquery": "^1.11.2"
   },
   "devDependencies": {
-    "jshint": "2.8.0",
+    "jshint": "2.8.1",
     "release-it": "0.0.15"
   },
   "bugs": {
