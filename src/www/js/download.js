@@ -252,7 +252,7 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
         var imageTypeOptions = ["checkbox", "radio"];
         //download images that are part of the editor
         $.each(imageTypeOptions, function(index, type) {
-            form.fields.find(function(element, index){
+            form.fields.forEach(function(element, index){
                 if(element.type === type) {
                     element.properties.options.forEach(function(el, i) {
                         if("image" in el) {
