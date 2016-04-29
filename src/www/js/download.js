@@ -316,7 +316,7 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
                 fileName: name,
                 remoteDir: remoteDir,
                 localDir: localDir,
-                targetName: name + '.edtr'
+                targetName: name + '.json'
             };
         });
 
@@ -416,7 +416,7 @@ return {
                     this.downloadItem(options, function(entry) {
                         var promise;
 
-                        if (entry.name.indexOf('.edtr') > -1 || entry.name.indexOf('.') === -1) {
+                        if (entry.name.indexOf('.json') > -1 || entry.name.indexOf('.') === -1) {
                             promise = records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
 
                             ++count;
