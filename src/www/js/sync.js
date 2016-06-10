@@ -268,7 +268,7 @@ define(function(require) {
             '#saved-records-page-header-login-sync.cloud-logout',
             function(event){
                 event.preventDefault();
-                pcapi.logoutCloud();
+                pcapi.logoutCloud(true);
                 refreshButtonsState('loggedout');
         });
 
@@ -602,7 +602,7 @@ define(function(require) {
             getProviders(onsuccess, onerror);
         }
         else {
-            pcapi.logoutCloud();
+            pcapi.logoutCloud(true);
             hideSyncButtons();
         }
     });
