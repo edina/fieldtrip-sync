@@ -564,6 +564,9 @@ define(function(require) {
         }
     });
 
+    // TODO add auto login
+    //pcapi.setCloudLogin('00000000-0000-0000-0000-000000000000');
+
     // listen on saved records page
     $(document).on('_pageshow', '#saved-records-page', recordsPage);
 
@@ -634,8 +637,8 @@ define(function(require) {
                     $.mobile.loading('hide');
                 })
                 .fail(function(err) {
-                    console.error(err);
-                    utils.informError(err);
+                    utils.printObj(err);
+                    utils.informError("Problem with downloading surveys: " + err.statusText);
                 });
         }
     );

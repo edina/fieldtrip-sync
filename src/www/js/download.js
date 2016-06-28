@@ -440,7 +440,7 @@ return {
         items.fail(function(error){
             // nothing to do
             utils.inform('Problem downloading forms');
-            deferred.error(error);
+            deferred.reject(error);
         });
 
         return deferred.promise();
