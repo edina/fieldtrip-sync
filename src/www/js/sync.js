@@ -558,14 +558,19 @@ define(function(require) {
     }
     pcapi.init({"url": root, "version": utils.getPCAPIVersion()});
 
-    pcapi.checkLogin(function(userId){
-        if(userId){
-            showSyncButtons();
-        }
-    });
+    var config = utils.getConfig();
+    if(config.hasOwnProperty('pcapiuserid')){
+        // bypass authentication step with hard coded pcapiuserid
+        pcapi.setCloudLogin(config.pcapiuserid);
+    }
+    else{
+        pcapi.checkLogin(function(userId){
+            if(userId){
+                showSyncButtons();
+            }
+        });
+    }
 
-    // TODO add auto login
-    //pcapi.setCloudLogin('00000000-0000-0000-0000-000000000000');
 
     // listen on saved records page
     $(document).on('_pageshow', '#saved-records-page', recordsPage);
@@ -633,12 +638,20 @@ define(function(require) {
             utils.showPageLoadingMsg('Download Editors ...');
             download.downloadEditorsOrSurveys()
                 .done(function() {
-                    $.mobile.changePage('capture.html');
+                    var pageId = $('body').pagecontainer('getActivePage').get(0).id;
+                    if(pageId === 'capture-page'){
+                        $('#capture-section2').empty();
+                        records.appendAllEditorButtons('#capture-section2');
+                    }
+                    else{
+                        $.mobile.changePage('capture.html');
+                    }
+
                     $.mobile.loading('hide');
                 })
                 .fail(function(err) {
                     utils.printObj(err);
-                    utils.informError("Problem with downloading surveys: " + err.statusText);
+                    utils.informError("Problem with downloading surveys: " + err);
                 });
         }
     );

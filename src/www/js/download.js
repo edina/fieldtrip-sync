@@ -396,7 +396,10 @@ return {
             "remoteDir": remoteDir
         });
         items.done($.proxy(function(data){
-            if(data.metadata.length ===0){
+            if(!data.hasOwnProperty('metadata')){
+                deferred.reject(data.msg);
+            }
+            else if(data.metadata.length ===0){
                 // nothing to do
                 utils.inform('No editors to sync');
                 finished(true);
@@ -438,9 +441,7 @@ return {
             }
         }, this));
         items.fail(function(error){
-            // nothing to do
-            utils.inform('Problem downloading forms');
-            deferred.reject(error);
+            deferred.reject(error.statusText);
         });
 
         return deferred.promise();
