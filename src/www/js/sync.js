@@ -571,7 +571,6 @@ define(function(require) {
         });
     }
 
-
     // listen on saved records page
     $(document).on('_pageshow', '#saved-records-page', recordsPage);
 
@@ -726,6 +725,13 @@ define(function(require) {
         pcapi.setCloudProviderUrl(
             $('#settings-pcapi-url option:selected').val());
     });
+
+    // if configured and no private surveys have been downloaded try and download
+    if(utils.str2bool(config.syncdownloadauto) &&
+       jQuery.isEmptyObject(records.getEditors().private)){
+        console.debug("no editors installed, try and download ...");
+        $('.sync-download-button').click();
+    }
 
     $('head').prepend('<link rel="stylesheet" href="plugins/sync/css/style.css" type="text/css" />');
 });
