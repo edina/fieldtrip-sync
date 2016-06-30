@@ -637,12 +637,12 @@ define(function(require) {
             utils.showPageLoadingMsg('Download Editors ...');
             download.downloadEditorsOrSurveys()
                 .done(function() {
-                    var pageId = $('body').pagecontainer('getActivePage').get(0).id;
-                    if(pageId === 'capture-page'){
-                        $('#capture-section2').empty();
-                        records.appendAllEditorButtons('#capture-section2');
+                    var id = config.synccaptureid;
+                    if(id){
+                        records.appendAllEditorButtons('#' + id);
                     }
                     else{
+                        // if synccaptureid is not defined, change page
                         $.mobile.changePage('capture.html');
                     }
 
@@ -727,7 +727,8 @@ define(function(require) {
     });
 
     // if configured and no private surveys have been downloaded try and download
-    if(utils.str2bool(config.syncdownloadauto) &&
+    if(utils.isMobileDevice() &&
+       utils.str2bool(config.syncdownloadauto) &&
        jQuery.isEmptyObject(records.getEditors().private)){
         console.debug("no editors installed, try and download ...");
         $('.sync-download-button').click();
