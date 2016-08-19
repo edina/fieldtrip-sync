@@ -248,7 +248,51 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
             });
         });
 
-        //radio and checkbox are the elements that might have pictures
+        // textarea can have an imageCaption
+
+        form.fields.forEach(function(element, index){
+            if(element.type === "textarea") {
+
+                    if(element.properties.imageCaption) {
+                        var elementValue = element.properties.imageCaption.src;
+                        var options = {};
+                        if (group === records.EDITOR_GROUP.PUBLIC) {
+                            options.userId = utils.getAnonymousUserId();
+                            options.localDir = records.getEditorsDir(records.EDITOR_GROUP.PUBLIC);
+                        }
+                        else {
+                            options.userId = pcapi.getUserId();
+                            options.localDir = records.getEditorsDir();
+                        }
+                        file.createDir({
+                            'parent': options.localDir,
+                            'name': editorFolder,
+                            'success': function(dir){
+                                options.localDir = dir;
+                                console.log("folder " + options.localDir.toURL() + " was created");
+                            }
+                        });
+                        options.remoteDir = "editors";
+                        options.fileName = editorFolder+"/"+elementValue;
+                        options.targetName = editorFolder+"/"+elementValue;
+                        downloadItem(
+                            options,
+                            function() {
+                                console.debug('Asset ' + elementValue + ' downloaded');
+                            },
+                            function() {
+                                console.error('Error downloading ' + elementValue);
+                            });
+                    }
+
+            }
+        });
+
+
+
+
+
+        //radio and checkbox  are the elements that might have pictures
         var imageTypeOptions = ["checkbox", "radio"];
         //download images that are part of the editor
         $.each(imageTypeOptions, function(index, type) {
