@@ -1,6 +1,6 @@
 {
   "name": "fieldtrip-sync",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "A fieldtrip plugin for adding/updating/deleting records on pcapi",
   "main": "src/www/js/sync.js",
   "scripts": {
