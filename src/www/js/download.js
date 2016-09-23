@@ -251,10 +251,11 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
         // textarea can have an imageCaption
 
         form.fields.forEach(function(element, index){
-            if(element.type === "textarea") {
+            console.warn(element);
+            if(element.type === "textarea" || element.type === "static-image") {
 
-                    if(element.properties.imageCaption) {
-                        var elementValue = element.properties.imageCaption.src;
+                    if(element.properties['image-caption']) {
+                        var elementValue = element.properties['image-caption'].src;
                         var options = {};
                         if (group === records.EDITOR_GROUP.PUBLIC) {
                             options.userId = utils.getAnonymousUserId();
