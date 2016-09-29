@@ -630,6 +630,19 @@ define(function(require) {
             });
         }
     );
+
+    $(document).on(
+        'vclick',
+        '.sync-upload-button-no-redirect',
+        function(event){
+            event.preventDefault();
+            utils.showPageLoadingMsg('Upload Records ...');
+            upload.uploadRecords(function(){
+                $.mobile.loading('hide');
+            });
+        }
+    );
+    
     $(document).on(
         'vclick',
         '.sync-download-button',

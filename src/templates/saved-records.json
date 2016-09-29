@@ -13,7 +13,8 @@
                 "data-iconpos": "notext",
                 "data-shadow": "false",
                 "data-iconshadow": "false",
-                "style":"display: none;"
+                "style":"display: none;",
+                "value": "Upload"
             },
             "sync": {
                 "id": "saved-records-page-header-login-sync",
