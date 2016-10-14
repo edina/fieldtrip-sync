@@ -252,10 +252,10 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
 
         form.fields.forEach(function(element, index){
             console.warn(element);
-            if(element.type === "textarea" || element.type === "static-image") {
+            if(element.type === "textarea" || element.type === "static-image") { 
 
-                    if(element.properties['image-caption']) {
-                        var elementValue = element.properties['image-caption'].src;
+                    if(element.properties['image-caption'] || element.properties['imageCaption']) {   
+                        var elementValue = element.properties['image-caption'] ? element.properties['image-caption'].src : element.properties['imageCaption'].src;
                         var options = {};
                         if (group === records.EDITOR_GROUP.PUBLIC) {
                             options.userId = utils.getAnonymousUserId();
