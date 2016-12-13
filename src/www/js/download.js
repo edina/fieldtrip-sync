@@ -72,11 +72,9 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
                     .then(function() {
                         var localDir = records.getEditorsDir();
                         var remoteDir = PRIVATE_USER_FORM_PATH;
-
                         return _this.downloadEditors(localDir, remoteDir);
                     });
         }
-
         return fetchedItems;
     };
 
@@ -251,7 +249,6 @@ define(['records', 'map', 'file', 'utils', './ext/pcapi'], function(/* jshint ig
         // textarea can have an imageCaption
 
         form.fields.forEach(function(element, index){
-            console.warn(element);
             if(element.type === "textarea" || element.type === "static-image") { 
 
                     if(element.properties['image-caption'] || element.properties['imageCaption']) {   
@@ -467,12 +464,13 @@ return {
                         if (entry.name.indexOf('.json') > -1 || entry.name.indexOf('.') === -1) {
                             promise = records.addEditor(entry, records.EDITOR_GROUP.PRIVATE);
 
-                            ++count;
+                            
                             promise.done(function() {
                                 downloads.push(fileName);
                             });
 
                             promise.always(function() {
+                                ++count;
                                 if (count === noOfItems) {
                                     finished(true);
                                 }
